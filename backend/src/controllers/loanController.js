@@ -491,6 +491,9 @@ export const applyForLoan = async (req, res) => {
       age,
       applicantProfile,
       educationDetails,
+      homeDetails,
+      autoDetails,
+      businessDetails,
     } = req.body;
 
     // Validate required fields
@@ -653,6 +656,34 @@ export const applyForLoan = async (req, res) => {
       status: decision.status,
       submittedAt: new Date(),
     };
+
+    // Add loan-specific details
+    if (loanType === "home" && homeDetails) {
+      loanData.homeDetails = {
+        area: toNumberOrNull(homeDetails.area),
+        bhk: homeDetails.bhk || null,
+        location: homeDetails.location || null,
+        propertyType: homeDetails.propertyType || null,
+      };
+    }
+
+    if (loanType === "auto" && autoDetails) {
+      loanData.autoDetails = {
+        vehicleType: autoDetails.vehicleType || null,
+        model: autoDetails.model || null,
+        registrationNumber: autoDetails.registrationNumber || null,
+        estimatedValue: toNumberOrNull(autoDetails.estimatedValue),
+      };
+    }
+
+    if (loanType === "business" && businessDetails) {
+      loanData.businessDetails = {
+        businessType: businessDetails.businessType || null,
+        businessName: businessDetails.businessName || null,
+        yearsInOperation: toNumberOrNull(businessDetails.yearsInOperation),
+        annualTurnover: toNumberOrNull(businessDetails.annualTurnover),
+      };
+    }
 
     if (dateOfBirth) loanData.dateOfBirth = dateOfBirth;
     if (age) loanData.age = Number(age);

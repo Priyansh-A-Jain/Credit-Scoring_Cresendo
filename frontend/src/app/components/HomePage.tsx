@@ -1,239 +1,256 @@
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Shield, TrendingUp, Eye, Zap, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { BrutalCard } from "./BrutalCard";
 
 export function HomePage() {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const stats = [
-    { value: "98.7%", label: "Model Accuracy" },
-    { value: "2.3s", label: "Score Generation" },
-    { value: "500K+", label: "Scores Generated" },
-    { value: "47%", label: "More Inclusive" }
-  ];
-
-  const features = [
-    {
-      icon: Zap,
-      title: "AI-Powered Scoring",
-      description: "Harness the power of AI with 200+ behavioral signals to generate accurate, real-time credit scores beyond traditional metrics"
-    },
-    {
-      icon: TrendingUp,
-      title: "Financial Inclusion",
-      description: "Open doors for the underbanked and thin-file applicants using alternative data like UPI, utility bills, and GST metrics"
-    },
-    {
-      icon: Eye,
-      title: "Explainability & Transparency",
-      description: "Every decision comes with a clear, interpretable rationale: SHAP values, feature importance, and complete transparency"
-    },
-    {
-      icon: Shield,
-      title: "Bias-Free Lending",
-      description: "Built on fairness monitoring, detects and mitigates biases across patterns, ensuring fair, gender-neutral lending"
-    }
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-1.5">
-              <img src="/images/download.png" alt="Bird" className="w-10 h-10" />
-              <span className="font-bold text-xl sm:text-xl text-slate-900">CREDIT</span>
-            </div>
-            
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6 lg:gap-10">
-              <a href="#features" className="text-slate-600 hover:text-blue-600 transition-colors text-base lg:text-lg">Features</a>
-              <a href="#how-it-works" className="text-slate-600 hover:text-blue-600 transition-colors text-base lg:text-lg">How It Works</a>
-              <a href="#security" className="text-slate-600 hover:text-blue-600 transition-colors text-base lg:text-lg">Security</a>
-              <Button 
-                onClick={() => navigate("/login")} 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 lg:px-8 py-2 text-base font-semibold"
-              >
-                Get Started
-              </Button>
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-700"
-            >
-              {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 space-y-3 border-t border-slate-200">
-              <a href="#features" className="block text-slate-600 hover:text-blue-600 transition-colors py-2 text-base">Features</a>
-              <a href="#how-it-works" className="block text-slate-600 hover:text-blue-600 transition-colors py-2 text-base">How It Works</a>
-              <a href="#security" className="block text-slate-600 hover:text-blue-600 transition-colors py-2 text-base">Security</a>
-              <Button 
-                onClick={() => navigate("/login")} 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold py-2"
-              >
-                Get Started
-              </Button>
-            </div>
-          )}
+    <div className="bg-white min-h-screen text-black font-sans selection:bg-blue-600 selection:text-white">
+      {/* Navbar */}
+      <nav className="flex items-center justify-between px-6 md:px-12 py-5 border-b-[1.5px] border-black">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xl md:text-2xl font-black tracking-tighter uppercase">CREDIT</span>
+          <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-600 mb-1" />
         </div>
-      </header>
+        <div className="hidden md:flex gap-10 text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
+          <a href="#about" className="hover:opacity-70 transition-opacity">About</a>
+          <a href="#logic" className="hover:opacity-70 transition-opacity">Logic</a>
+          <a href="#secure" className="hover:opacity-70 transition-opacity">Secure</a>
+        </div>
+        <button 
+          onClick={() => navigate("/login")}
+          className="bg-black text-white hover:bg-black/90 rounded-none border-[1.5px] border-transparent font-black text-[10px] md:text-xs px-6 py-2 uppercase tracking-[0.2em] transition-all"
+        >
+          START &rarr;
+        </button>
+      </nav>
 
       {/* Hero Section */}
-      <section 
-        className="relative min-h-[67.28vh] flex items-center justify-center overflow-hidden bg-cover bg-center bg-fixed"
-        style={{
-          backgroundImage: 'url(/images/dashboard-hero.png)',
-          backgroundSize: '99%'
-        }}
-      >
-        {/* Dark Overlay for Text Readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-slate-50 to-blue-50"></div>
-        
-        {/* Content */}
-        <div className="relative z-10 w-full">
-          <div className="px-10 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-11 sm:py-15 lg:py-19">
-            <div className="text-center max-w-4xl mx-auto">
-              {/* <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-4 sm:px-5 py-3 rounded-full text-sm sm:text-base mb-6 sm:mb-8 border border-blue-500/30">
-                <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                AI-Powered Credit Intelligence Platform
-              </div> */}
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-slate-900 mb-3 sm:mb-6">
-                Credit Scoring
-              </h1>
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-blue-600 mb-6 sm:mb-10">
-                Reimagined by AI
-              </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-slate-700 max-w-3xl mx-auto mb-4 sm:mb-6">
-                <span className="font-semibold text-slate-900">CREDIT</span> — Comprehensive Risk Evaluation through Data-Driven Intelligence
-              </p>
-              {/* <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto mb-10 sm:mb-16">
-                AI models analyze 200+ behavioral signals from your financial data to generate fair, explainable credit scores in seconds
-              </p> */}
-              
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-                <Button 
-                  onClick={() => navigate("/login")} 
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-7 sm:px-9 py-5 sm:py-6 text-base sm:text-lg font-semibold shadow-lg shadow-blue-600/50"
-                >
-                  Check Your Credit Score →
-                </Button>
-              </div>
-            </div>
+      <main className="flex flex-col md:flex-row items-center justify-center min-h-[80vh] px-8 md:px-12 xl:px-24 py-12 md:py-0 border-b-[1.5 ; border-black relative overflow-hidden">
+        <div className="w-full md:w-1/2 flex flex-col justify-center z-10">
+          <h1 className="text-[12vw] md:text-[8vw] lg:text-[7rem] leading-[0.85] font-black tracking-tighter uppercase mb-10">
+            CREDIT IS<br />
+            <span className="text-blue-600">BROKEN.</span><br />
+            WE FIX IT.
+          </h1>
+          <div className="font-bold text-xl md:text-2xl lg:text-3xl mb-12 max-w-xl leading-tight">
+            NO CIBIL? NO PROBLEM.<br />
+            WE USE REAL FINANCIAL BEHAVIOR.
+          </div>
+          <div>
+            <Button
+              onClick={() => navigate("/login")}
+              className="bg-black text-white hover:bg-black/80 rounded-none border-2 border-transparent font-black text-base md:text-lg px-8 py-7 uppercase tracking-[0.1em] transition-all w-full md:w-auto"
+            >
+              CHECK YOUR SCORE &rarr;
+            </Button>
           </div>
         </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="bg-white border-y border-slate-200 py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-1 sm:mb-2">{stat.value}</div>
-                <div className="text-xs sm:text-sm lg:text-base text-slate-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="w-full md:w-1/2 flex justify-center py-16 md:py-0 z-10">
+          <BrutalCard />
         </div>
-      </section>
+      </main>
 
-      {/* Why CREDIT Section */}
-      <section id="features" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 sm:mb-4">Why CREDIT?</h2>
-            <p className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4">
-              The next generation of credit intelligence, built for fair and transparent lending decisions
+      {/* Removed the blue/white footer stripe here */}
+
+      {/* Section 1: BEHAVIORAL FEED (Replacing comparison table) */}
+      <section id="about" className="w-full border-b-[1.5px] border-black py-24 md:py-40 px-8 md:px-12 xl:px-24 bg-white overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 lg:gap-0 lg:divide-x-[1.5px] lg:divide-black -mx-8 md:-mx-12 xl:-mx-24 px-8 md:px-12 xl:px-24">
+          <div className="lg:pr-20">
+            <h2 className="text-[10vw] md:text-[6vw] lg:text-[6rem] leading-[0.85] font-black tracking-tighter uppercase mb-8">
+              NO CREDIT HISTORY?<br />
+              <span className="text-blue-600">GOOD.</span>
+            </h2>
+            <p className="font-black text-2xl md:text-4xl max-w-4xl leading-tight opacity-90 mb-12">
+              Traditional systems reject you. We don't.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-slate-300 hover:border-blue-500 transition-all hover:shadow-lg bg-white hover:shadow-blue-500/20">
-                <CardHeader>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4 border border-blue-300">
-                    <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          
+          {/* Real-time Behavioral Logic Feed */}
+          <div className="lg:pl-20">
+            <div className="flex flex-col border-[2px] border-black h-fit bg-white p-6 md:p-8 shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all">
+             <div className="flex justify-between items-center mb-10 pb-4 border-b border-black/10">
+               <span className="font-black text-xs tracking-[0.3em] uppercase opacity-40">SIGNAL_STREAM</span>
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                 <span className="font-bold text-[10px] uppercase">LIVE ANALYSIS</span>
+               </div>
+             </div>
+             
+             <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center group">
+                  <div className="flex flex-col">
+                    <span className="font-black text-sm uppercase">RENT_PAYMENT_LOOP</span>
+                    <span className="text-[10px] font-bold text-gray-400">03 SUCCESSIVE MONTHS</span>
                   </div>
-                  <CardTitle className="text-lg sm:text-xl text-slate-900">{feature.title}</CardTitle>
-                  <CardDescription className="text-slate-600 text-sm sm:text-base">
-                    {feature.description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+                  <span className="font-black text-blue-600">+18 PTS</span>
+                </div>
+                <div className="h-[1px] bg-black/5" />
+                <div className="flex justify-between items-center group">
+                  <div className="flex flex-col">
+                    <span className="font-black text-sm uppercase">UTILITY_SETTLEMENT</span>
+                    <span className="text-[10px] font-bold text-gray-400">ON-TIME VERIFIED</span>
+                  </div>
+                  <span className="font-black text-blue-600">+12 PTS</span>
+                </div>
+                <div className="h-[1px] bg-black/5" />
+                <div className="flex justify-between items-center group">
+                  <div className="flex flex-col">
+                    <span className="font-black text-sm uppercase">CASH_FLOW_STABILITY</span>
+                    <span className="text-[10px] font-bold text-gray-400">POSITIVE NET MARGIN</span>
+                  </div>
+                  <span className="font-black text-blue-600">+24 PTS</span>
+                </div>
+                <div className="h-[1px] bg-black/5" />
+                <div className="flex justify-between items-center group">
+                  <div className="flex flex-col">
+                    <span className="font-black text-sm uppercase">SUB_RENEWAL_CONSISTENCY</span>
+                    <span className="text-[10px] font-bold text-gray-400">DIGITAL FOOTPRINT SCAN</span>
+                  </div>
+                  <span className="font-black text-blue-600">+08 PTS</span>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+      {/* Section 2: Data Signals Grid (Adding Hover Effect) */}
+      <section className="w-full border-b-[1.5px] border-black py-24 md:py-40 px-8 md:px-12 xl:px-24 bg-black text-white overflow-hidden selection:bg-white selection:text-black">
+        <div className="flex flex-col lg:flex-row gap-16 lg:items-end mb-24">
+          <div className="flex-1">
+            <h2 className="text-[10vw] md:text-[6vw] lg:text-[6rem] leading-[0.85] font-black tracking-tighter uppercase mb-6">
+              USES REAL DATA.<br />
+              <span className="text-blue-600">NOT YOUR PAST.</span>
+            </h2>
+            <p className="font-black text-2xl md:text-4xl max-w-4xl leading-tight opacity-90 text-gray-400">
+              Beyond the score. Into the flow.
+            </p>
+          </div>
+        </div>
+
+        {/* Data Signals Grid with Hover Effects */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-[1.5px] border-white/20 divide-y-[1.5px] md:divide-y-0 md:divide-x-[1.5px] divide-white/20">
+          <div className="p-8 flex flex-col gap-4 hover:bg-blue-600 transition-all duration-300 group cursor-default">
+            <div className="text-blue-500 font-mono text-sm group-hover:text-white transition-colors">01</div>
+            <div className="font-black text-xl uppercase italic group-hover:text-white transition-colors">UTILITIES</div>
+            <p className="text-[10px] md:text-xs text-gray-500 font-bold tracking-widest uppercase group-hover:text-white/80 transition-colors">REGULAR BILL PAYMENTS AS TRUST SIGNALS.</p>
+          </div>
+          <div className="p-8 flex flex-col gap-4 hover:bg-blue-600 transition-all duration-300 group cursor-default">
+            <div className="text-blue-500 font-mono text-sm group-hover:text-white transition-colors">02</div>
+            <div className="font-black text-xl uppercase italic group-hover:text-white transition-colors">CASH FLOW</div>
+            <div className="text-[10px] md:text-xs text-gray-500 font-bold tracking-widest uppercase group-hover:text-white/80 transition-colors">REAL-TIME LIQUIDITY ANALYSIS.</div>
+          </div>
+          <div className="p-8 flex flex-col gap-4 hover:bg-blue-600 transition-all duration-300 group cursor-default">
+            <div className="text-blue-500 font-mono text-sm group-hover:text-white transition-colors">03</div>
+            <div className="font-black text-xl uppercase italic group-hover:text-white transition-colors">RENTAL DATA</div>
+            <div className="text-[10px] md:text-xs text-gray-500 font-bold tracking-widest uppercase group-hover:text-white/80 transition-colors">CONSISTENT RECURRING BEHAVIOR.</div>
+          </div>
+          <div className="p-8 flex flex-col gap-4 hover:bg-blue-600 transition-all duration-300 group cursor-default">
+            <div className="text-blue-500 font-mono text-sm group-hover:text-white transition-colors">04</div>
+            <div className="font-black text-xl uppercase italic group-hover:text-white transition-colors">SUBSCRIPTIONS</div>
+            <div className="text-[10px] md:text-xs text-gray-500 font-bold tracking-widest uppercase group-hover:text-white/80 transition-colors">DIGITAL RESPONSIBILITY FOOTPRINT.</div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-50 to-blue-100 border-y border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4 sm:mb-6">
-            Ready to Check Your Credit Score?
+      {/* Section 3: Instant Decision (Kept as is, but slightly tweaked for flow) */}
+      <section className="w-full border-b-[1.5px] border-black py-24 md:py-40 px-8 md:px-12 xl:px-24 bg-white overflow-hidden">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-16 mb-16">
+          <h2 className="text-[10vw] md:text-[6vw] lg:text-[7rem] leading-[0.85] font-black tracking-tighter uppercase">
+            INSTANT DECISION.<br />
+            <span className="text-blue-600">NO WAITING.</span>
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-slate-700 mb-6 sm:mb-8">
-            Get instant access to your AI-powered credit score and detailed financial insights
-          </p>
-          <Button 
-            onClick={() => navigate("/login")} 
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg w-full sm:w-auto shadow-lg shadow-blue-600/50"
-          >
-            Get Started Now →
-          </Button>
+          
+          {/* Small Decision Card Mockup */}
+          <div className="w-full max-w-sm border-[3px] border-black p-6 bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] flex flex-col gap-4">
+             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+               <span>CREDIT REPORT</span>
+               <span className="text-green-600">SUCCESS</span>
+             </div>
+             <div className="text-5xl font-black text-black">742</div>
+             <div className="h-2 bg-gray-100 w-full">
+               <div className="h-full bg-blue-600 w-[78%]"></div>
+             </div>
+             <div className="text-[10px] text-gray-400 font-bold uppercase">Decision processed in 2.4s</div>
+          </div>
+        </div>
+        <p className="font-black text-2xl md:text-4xl max-w-4xl leading-tight opacity-90 text-black">
+          Seconds, not days. Automated for speed.
+        </p>
+      </section>
+
+      {/* How it Works Section */}
+      <section id="logic" className="w-full border-b-[1.5px] border-black py-24 md:py-40 px-8 md:px-12 xl:px-24 bg-white">
+        <div className="max-w-6xl">
+          <h3 className="text-xs md:text-sm font-black tracking-[0.3em] uppercase mb-16 md:mb-24 text-black/40">HOW IT WORKS</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-0 md:divide-x-[1.5px] divide-black border-y-[1.5px] border-black -mx-8 md:mx-0">
+             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">01</div>
+               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">CONNECT</h4>
+               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">LINK ACCOUNTS SECURELY.</p>
+               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Securely connect your financial data via encrypted channels. No credentials stored.</p>
+             </div>
+             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">02</div>
+               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">ANALYZE</h4>
+               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">AI DETECTS PATTERNS.</p>
+               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Our AI engine scans thousands of behavioral signals to build your unique trust profile.</p>
+             </div>
+             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">03</div>
+               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">UNLOCK</h4>
+               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">GET YOUR REAL SCORE.</p>
+               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Instant decisioning based on current merit, unlocking fair credit access in seconds.</p>
+             </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-50 border-t border-slate-200 py-8 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <img src="/images/download.png" alt="Bird" className="w-8 h-8" />
-                <span className="font-bold text-slate-900">CREDIT</span>
-              </div>
-              <p className="text-sm text-slate-600">
-                AI-powered credit intelligence for fair lending decisions.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 mb-3 sm:mb-4 text-sm sm:text-base">Product</h3>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-600">
-                <li><a href="#" className="hover:text-blue-600">Credit Score</a></li>
-                <li><a href="#" className="hover:text-blue-600">Features</a></li>
-                <li><a href="#" className="hover:text-blue-600">Pricing</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 mb-3 sm:mb-4 text-sm sm:text-base">Company</h3>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-600">
-                <li><a href="#" className="hover:text-blue-600">About</a></li>
-                <li><a href="#" className="hover:text-blue-600">Careers</a></li>
-                <li><a href="#" className="hover:text-blue-600">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 mb-3 sm:mb-4 text-sm sm:text-base">Legal</h3>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-600">
-                <li><a href="#" className="hover:text-blue-600">Privacy</a></li>
-                <li><a href="#" className="hover:text-blue-600">Terms</a></li>
-                <li><a href="#" className="hover:text-blue-600">Security</a></li>
-              </ul>
+      {/* Secure Segment */}
+      <section id="secure" className="w-full px-8 md:px-12 xl:px-24 py-24 md:py-40 bg-white border-b-[1.5px] border-black">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 lg:mb-32">
+          <h2 className="text-[12vw] md:text-[6vw] lg:text-[7rem] leading-[0.85] font-black tracking-tighter uppercase mb-12 md:mb-0">
+            SECURE.<br />PRIVATE.<br />ENCRYPTED.
+          </h2>
+          <div className="flex flex-col items-start md:items-end text-right">
+            <div className="w-12 h-1 bg-blue-600 mb-6"></div>
+            <div className="font-black italic text-sm md:text-base tracking-[0.2em] uppercase text-left md:text-right flex flex-col gap-2">
+              <span>256-BIT SECURITY</span>
+              <span>RBI COMPLIANT</span>
+              <span>ISO CERTIFIED</span>
             </div>
           </div>
-          <div className="border-t border-slate-200 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-600">
-            <p>&copy; 2026 CREDIT. All rights reserved.</p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">BANK GRADE PROTECTION</div>
+           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ENCRYPTED DATA FLOW</div>
+           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ZERO KNOWLEDGE POLICY</div>
+           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">REGULATORY COMPLIANCE</div>
+        </div>
+      </section>
+
+      {/* Modern Footer */}
+      <footer className="w-full py-12 md:py-20 px-8 md:px-12 xl:px-24 bg-black text-white selection:bg-white selection:text-black">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+          <div className="text-4xl font-black tracking-tighter">CREDIT</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24 font-bold text-[10px] md:text-xs tracking-[0.2em] uppercase text-gray-500">
+            <div className="flex flex-col gap-4">
+              <span className="text-white mb-2">Product</span>
+              <a href="#" className="hover:text-white">API Docs</a>
+              <a href="#" className="hover:text-white">Coverage</a>
+            </div>
+            <div className="flex flex-col gap-4">
+              <span className="text-white mb-2">Company</span>
+              <a href="#" className="hover:text-white">Terms</a>
+              <a href="#" className="hover:text-white">Security</a>
+            </div>
+            <div className="flex flex-col justify-between items-start md:items-end">
+              <a href="#" className="text-white border-b-2 border-white pb-1 mb-8">TWITTER / X</a>
+              <div className="text-[9px] opacity-30 tracking-normal">&copy; 2026 CREDIT SYSTEMS</div>
+            </div>
           </div>
         </div>
       </footer>

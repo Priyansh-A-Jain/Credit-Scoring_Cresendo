@@ -530,7 +530,31 @@ export function ApplyLoanPage() {
           hasExistingLoan,
           existingEmi: existingEmi ? Number(existingEmi) : null,
         },
-        educationDetails,
+        ...(loanType === 'education' && { educationDetails }),
+        ...(loanType === 'home' && {
+          homeDetails: {
+            area: homeArea ? Number(homeArea) : null,
+            bhk: bhk || null,
+            location: homeLocation || null,
+            propertyType: null,
+          },
+        }),
+        ...(loanType === 'auto' && {
+          autoDetails: {
+            vehicleType: autoType || null,
+            model: autoModel || null,
+            registrationNumber: null,
+            estimatedValue: autoPrice ? Number(autoPrice) : null,
+          },
+        }),
+        ...(loanType === 'business' && {
+          businessDetails: {
+            businessType: businessType || null,
+            businessName: null,
+            yearsInOperation: null,
+            annualTurnover: null,
+          },
+        }),
       };
 
       console.log('📤 Submitting loan application:', applicationPayload);
