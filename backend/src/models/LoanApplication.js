@@ -26,6 +26,28 @@ const loanApplicationSchema = new mongoose.Schema({
     verifiedValue: { type: Number },
   },
 
+  // Loan-specific details
+  homeDetails: {
+    area: { type: Number }, // in sq ft
+    bhk: { type: String },
+    location: { type: String },
+    propertyType: { type: String }, // ready built, under construction, etc.
+  },
+
+  autoDetails: {
+    vehicleType: { type: String }, // car, bike, truck, etc.
+    model: { type: String },
+    registrationNumber: { type: String },
+    estimatedValue: { type: Number },
+  },
+
+  businessDetails: {
+    businessType: { type: String }, // msme, large
+    businessName: { type: String },
+    yearsInOperation: { type: Number },
+    annualTurnover: { type: Number },
+  },
+
   // AI scoring output
   aiAnalysis: {
     creditScore: { type: Number, default: 600 },

@@ -7,6 +7,7 @@ import { Label } from "./ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
 import { authService } from "../services/authService";
 
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -19,7 +20,7 @@ export function LoginPage() {
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
   const [otpFor, setOtpFor] = useState<"login" | "signup-email">("login");
-  const [signupStep, setSignupStep] = useState<"form" | "email-otp">("form"); // Track signup progress
+  const [signupStep, setSignupStep] = useState<"form" | "phone-otp" | "email-otp">("form"); 
   const [canResendOtp, setCanResendOtp] = useState(true);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -70,7 +71,6 @@ export function LoginPage() {
           setError("Invalid admin credentials");
         }
       } else {
-        // User login - call backend API
         if (!mobile || !password) {
           setError("Phone number and password are required");
           setLoading(false);
@@ -82,7 +82,6 @@ export function LoginPage() {
           password,
         });
 
-        // OTP sent successfully, show OTP input
         setShowOtp(true);
         setOtpFor("login");
       }
@@ -112,10 +111,10 @@ export function LoginPage() {
         password,
       });
 
-      // OTP sent to email, show email OTP input
+      // Backend sends phone OTP first
       setShowOtp(true);
       setOtpFor("signup-email");
-      setSignupStep("email-otp");
+      setSignupStep("phone-otp");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -137,23 +136,36 @@ export function LoginPage() {
 
       let response;
 
-      if (signupStep === "email-otp") {
-        // SIGNUP FLOW: Verify email OTP and create user
-        console.log('📧 Verifying email OTP and creating user...');
+      if (signupStep === "phone-otp") {
+        // Step 1: Verify phone OTP → backend sends email OTP
+        console.log('Verifying phone OTP...');
+        await authService.verifyPhoneOtp({
+          phone: mobile,
+          email: email,
+          otp,
+        });
+        // Phone verified, now need email OTP
+        console.log('Phone verified, email OTP sent. Moving to email-otp step.');
+        setOtp("");
+        setSignupStep("email-otp");
+        setLoading(false);
+        return; // Stay on OTP screen for email OTP
+      } else if (signupStep === "email-otp") {
+        // Step 2: Verify email OTP → creates user
+        console.log('Verifying email OTP and creating user...');
         response = await authService.verifyEmailOtp({
           phone: mobile,
           email: email,
           otp,
         });
       } else {
-        // Verify login OTP
+        // Login OTP verification
         response = await authService.verifyLoginOtp({
           phone: mobile,
           otp,
         });
       }
 
-      // Store tokens and user info
       authService.setTokens(response.accessToken, response.refreshToken);
       localStorage.setItem("userType", "user");
       localStorage.setItem("userData", JSON.stringify(response.user));
@@ -174,13 +186,19 @@ export function LoginPage() {
 
       try {
         if (signupStep === "email-otp") {
-          // Resend email OTP during signup - only email verification, no phone verification required
           await authService.resendEmailOtp({
             phone: mobile,
             email,
           });
+        } else if (signupStep === "phone-otp") {
+          // Resend phone OTP by calling signup again
+          await authService.signup({
+            fullName,
+            email,
+            phone: mobile,
+            password,
+          });
         } else {
-          // Resend login OTP
           await authService.login({
             phone: mobile,
             password,
@@ -199,232 +217,222 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-[900px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row shadow-[#00000040] min-h-[550px]">
+    <div className="h-screen bg-white flex flex-col items-center justify-center p-4 md:p-8 font-sans selection:bg-blue-600 selection:text-white overflow-hidden">
 
-        {/* Left Side */}
-        <div className="md:w-1/2 p-8 sm:p-12 pl-16 flex flex-col items-center justify-center text-center bg-white">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center mb-6">
-              <img src="/images/download.png" alt="Barclays Logo" className="w-[120px] h-[120px] object-contain" />
+      {/* Main Branding Section */}
+      <div className="w-full max-w-sm mb-8 flex flex-col items-center text-center">
+        <h1 className="text-[10vw] md:text-[4rem] leading-none font-black tracking-tighter uppercase mb-1">
+            CREDIT
+        </h1>
+        <div className="w-10 h-1 bg-blue-600 mb-3" />
+        <p className="font-black text-base md:text-lg uppercase italic tracking-tighter">
+            No history? <span className="text-blue-600">No worries.</span>
+        </p>
+      </div>
+
+      {/* Login / Signup Form Container */}
+      <div className="w-full max-w-sm">
+        
+        {/* USER | ADMIN Toggle */}
+        {!showOtp && (
+          <div className="flex items-center justify-center gap-8 mb-6 font-black text-xs tracking-[0.3em] uppercase">
+            <button 
+              type="button"
+              onClick={() => setUserType("user")}
+              className={`pb-1 border-b-2 transition-all ${userType === "user" ? "border-blue-600 text-black" : "border-transparent text-gray-300"}`}
+            >
+              USER
+            </button>
+            <span className="text-gray-200">|</span>
+            <button 
+              type="button"
+              onClick={() => setUserType("admin")}
+              className={`pb-1 border-b-2 transition-all ${userType === "admin" ? "border-blue-600 text-black" : "border-transparent text-gray-300"}`}
+            >
+              ADMIN
+            </button>
+          </div>
+        )}
+
+        <h3 className="text-2xl font-black text-black mb-4 uppercase tracking-tighter">
+          {isSignUp ? "SIGN UP" : "LOGIN"}
+        </h3>
+
+        {error && (
+          <div className="mb-4 p-3 border-[1.5px] border-red-500 bg-red-50 text-red-600 text-[10px] md:text-xs font-black uppercase tracking-wider">
+            ERROR: {error}
+          </div>
+        )}
+
+        {!showOtp && (
+          <form className="space-y-4 mb-4">
+            {isSignUp && (
+              <div className="group">
+                <Label htmlFor="fullName" className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-black transition-colors mb-2 block">
+                  Full Name
+                </Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="h-12 bg-transparent border-[1px] border-black rounded-none shadow-none focus-visible:ring-0 focus-visible:border-[2.5px] transition-all font-bold"
+                />
+              </div>
+            )}
+
+            {userType === "user" ? (
+              <div className="group">
+                <Label htmlFor="mobile" className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-black transition-colors mb-2 block">
+                  {isSignUp ? "Mobile Number" : "Phone Number"}
+                </Label>
+                <Input
+                  id="mobile"
+                  type="text"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  placeholder={isSignUp ? "+91..." : "e.g. 9870000001"}
+                  className="h-12 bg-transparent border-[1px] border-black rounded-none shadow-none focus-visible:ring-0 focus-visible:border-[2.5px] transition-all font-bold placeholder:opacity-20"
+                />
+              </div>
+            ) : (
+              <div className="group">
+                <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-black transition-colors mb-2 block">
+                  Email ID
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@credit.com"
+                  className="h-12 bg-transparent border-[1px] border-black rounded-none shadow-none focus-visible:ring-0 focus-visible:border-[2.5px] transition-all font-bold placeholder:opacity-20"
+                />
+              </div>
+            )}
+
+            {isSignUp && (
+              <div className="group">
+                <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-black transition-colors mb-2 block">
+                  Email ID
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  className="h-12 bg-transparent border-[1px] border-black rounded-none shadow-none focus-visible:ring-0 focus-visible:border-[2.5px] transition-all font-bold placeholder:opacity-20"
+                />
+              </div>
+            )}
+
+            <div className="group">
+              <Label htmlFor="password/phone" className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-black transition-colors mb-2 block">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 bg-transparent border-[1px] border-black rounded-none shadow-none focus-visible:ring-0 focus-visible:border-[2.5px] transition-all font-bold"
+              />
             </div>
 
-            <h1 className="text-[2.75rem] font-serif font-bold text-blue-600 mb-1 tracking-wide uppercase">
-              BARCLAYS
-            </h1>
-            <h2 className="text-[2rem] font-serif font-bold text-blue-600 mb-6 tracking-wide uppercase">
-              CREDIT
-            </h2>
-            <p className="text-[13px] text-slate-700 font-bold max-w-xs mx-auto leading-relaxed mt-2 tracking-wide">
-              Empowering everyone with accurate credit<br />scores through advanced analytics. Access<br />secure and reliable financial insights.
-            </p>
-          </div>
-        </div>
+            <div className="pt-2">
+              <Button
+                onClick={isSignUp ? handleSignUp : handleLogin}
+                disabled={loading}
+                className="w-full h-12 bg-black hover:bg-black/90 text-white font-black text-sm md:text-base rounded-none shadow-none disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest transition-all"
+              >
+                {loading ? "PROCESSING..." : "CHECK YOUR SCORE →"}
+              </Button>
+            </div>
 
-        {/* Right Side */}
-        <div className="md:w-1/2 p-8 sm:p-12 pr-16 bg-blue-600 flex flex-col">
-
-          <div className="flex-1 flex flex-col pt-4">
-            {/* User/Admin Toggle - only for user type selection */}ī
-            {!showOtp && (
-              <div className="flex items-center justify-center gap-4 mb-8">
-                <span className="text-white text-sm font-semibold tracking-wide">USER</span>
-                <div
-                  className="relative w-12 h-6 bg-blue-400 rounded-full cursor-pointer flex items-center px-1"
-                  onClick={() => setUserType(userType === "user" ? "admin" : "user")}
+            {userType === "user" && (
+              <p className="text-black text-[10px] font-black tracking-widest uppercase text-center mt-3">
+                {isSignUp ? "Already a member? " : "New here? "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setOtp("");
+                    setShowOtp(false);
+                    setError("");
+                    setSignupStep("form");
+                  }}
+                  className="text-blue-600 underline underline-offset-4 hover:opacity-70 transition-opacity"
                 >
-                  <div
-                    className={`w-[18px] h-[18px] rounded-full bg-white transition-transform shadow-sm ${userType === "admin" ? "translate-x-6" : "translate-x-0"
-                      }`}
-                  />
-                </div>
-                <span className="text-white text-sm font-semibold tracking-wide">ADMIN</span>
+                  {isSignUp ? "LOGIN" : "CREATE ACCOUNT →"}
+                </button>
+              </p>
+            )}
+          </form>
+        )}
+
+        {/* OTP Screen Redesign */}
+        {showOtp && (
+          <form onSubmit={handleOtpSubmit} className="space-y-8 mt-6 pt-10 border-t-[1.5px] border-black/10 animate-in fade-in slide-in-from-bottom-2">
+            <div>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-6 block">
+                {signupStep === "phone-otp" ? "ENTER PHONE OTP" : signupStep === "email-otp" ? "ENTER EMAIL OTP" : "ENTER VERIFICATION CODE"}
+              </Label>
+              <div className="flex justify-center">
+                <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
+                  <InputOTPGroup className="gap-2 md:gap-3">
+                    <InputOTPSlot index={0} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none focus:ring-0 focus:border-[3px]" />
+                    <InputOTPSlot index={1} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none" />
+                    <InputOTPSlot index={2} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none" />
+                    <InputOTPSlot index={3} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none" />
+                    <InputOTPSlot index={4} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none" />
+                    <InputOTPSlot index={5} className="w-12 h-14 md:w-14 md:h-16 bg-white border-[1.5px] border-black text-black text-2xl font-black rounded-none" />
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
-            )}
+              <p className="text-[9px] md:text-[10px] text-gray-400 mt-6 font-black uppercase tracking-widest text-center">
+                {signupStep === "phone-otp" ? "OTP sent to your phone number." : signupStep === "email-otp" ? "OTP sent to your email address." : "An OTP has been dispatched to your identity."}
+              </p>
+            </div>
 
-            <h3 className="text-[18px] font-semibold text-white mb-6 text-center tracking-wide">
-              {isSignUp ? "Create a new Account" : "Login to your Account"}
-            </h3>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-500 text-white text-sm rounded">
-                {error}
+            <div className="flex flex-col items-center gap-4">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 bg-black hover:bg-black/90 text-white font-black text-lg rounded-none shadow-none disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.2em]"
+              >
+                {loading ? "VERIFYING..." : "SUBMIT OTP →"}
+              </Button>
+              
+              <div className="flex flex-col items-center md:flex-row md:gap-8 gap-4 mt-2">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={!canResendOtp || loading}
+                  className={`text-[10px] font-black uppercase tracking-widest pb-1 border-b-2 transition-all ${canResendOtp && !loading
+                      ? "text-black border-black hover:opacity-60"
+                      : "text-gray-300 border-transparent cursor-not-allowed"
+                    }`}
+                >
+                  {canResendOtp ? "RESEND CODE" : `RESEND IN ${resendCountdown}S`}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtp(false);
+                    setOtp("");
+                    setError("");
+                  }}
+                  disabled={loading}
+                  className="text-gray-300 border-b-2 border-transparent hover:text-black hover:border-black transition-all text-[10px] font-black uppercase tracking-widest"
+                >
+                  GO BACK
+                </button>
               </div>
-            )}
-
-            {!showOtp && (
-              <form className="space-y-4 mb-8">
-                {isSignUp && (
-                  <>
-                    <div>
-                      <Label htmlFor="fullName" className="text-white mb-1.5 block text-xs font-semibold tracking-wide">
-                        Full Name
-                      </Label>
-                      <Input
-                        id="fullName"
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="h-8 bg-white border-0 text-black rounded shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {userType === "user" ? (
-                  <div>
-                    <Label htmlFor="mobile" className="text-white mb-1.5 block text-xs font-semibold tracking-wide">
-                      {isSignUp ? "Mobile Number" : "Phone Number"}
-                    </Label>
-                    <Input
-                      id="mobile"
-                      type="text"
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value)}
-                      placeholder={isSignUp ? "e.g. +91 98765 43210" : "e.g. 9870000001"}
-                      className="h-8 bg-white border-0 text-black rounded shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <Label htmlFor="email" className="text-white mb-1.5 block text-xs font-semibold tracking-wide">
-                      Email ID
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin@barclays.com"
-                      className="h-8 bg-white border-0 text-black rounded shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
-                    />
-                  </div>
-                )}
-
-                {isSignUp && (
-                  <div>
-                    <Label htmlFor="email" className="text-white mb-1.5 block text-xs font-semibold tracking-wide">
-                      Email ID
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="user@example.com"
-                      disabled={false}
-                      readOnly={false}
-                      className="h-8 bg-white border-0 text-black rounded shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <Label htmlFor="password" className="text-white mb-1.5 block text-xs font-semibold tracking-wide">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={false}
-                    readOnly={false}
-                    className="h-8 bg-white border-0 text-black rounded shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <Button
-                    onClick={isSignUp ? handleSignUp : handleLogin}
-                    disabled={loading}
-                    className="w-full h-8 bg-white hover:bg-gray-100 text-[#4e4d7a] font-bold text-sm rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? "Processing..." : (isSignUp ? "Proceed to OTP Verification" : "Login with credentials")}
-                  </Button>
-                </div>
-
-                {userType === "user" && (
-                  <p className="text-white text-xs text-center mt-2">
-                    {isSignUp ? "Already have an account? " : "New to Barclays? "}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsSignUp(!isSignUp);
-                        setOtp("");
-                        setShowOtp(false);
-                        setError("");
-                        setSignupStep("form");
-                      }}
-                      className="underline font-bold hover:text-gray-200"
-                    >
-                      {isSignUp ? "Login" : "Create Account"}
-                    </button>
-                  </p>
-                )}
-              </form>
-            )}
-
-            {showOtp && (
-              <form onSubmit={handleOtpSubmit} className="space-y-4 mt-6 border-t border-blue-400 pt-6">
-                <div>
-                  <Label className="text-white mb-2 block text-xs font-semibold tracking-wide">
-                    Enter OTP
-                  </Label>
-                  <div className="flex justify-start">
-                    <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
-                      <InputOTPGroup className="gap-2 sm:gap-4">
-                        <InputOTPSlot index={0} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                        <InputOTPSlot index={1} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                        <InputOTPSlot index={2} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                        <InputOTPSlot index={3} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                        <InputOTPSlot index={4} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                        <InputOTPSlot index={5} className="w-10 h-10 bg-white border-0 text-[#4e4d7a] text-lg rounded-[8px]" />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  <p className="text-white text-[10px] mt-3 font-medium tracking-wide">
-                    An OTP has been sent to your email
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-center mt-4">
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-[120px] h-7 bg-white hover:bg-gray-100 text-[#4e4d7a] font-extrabold text-sm rounded-[4px] border-b-2 border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? "Verifying..." : "SUBMIT"}
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={!canResendOtp || loading}
-                    className={`text-[11px] font-bold mt-2.5 ${canResendOtp && !loading
-                        ? "text-white hover:text-gray-200 cursor-pointer"
-                        : "text-gray-300 cursor-not-allowed"
-                      }`}
-                  >
-                    {canResendOtp ? "Resend OTP" : `Resend OTP in ${resendCountdown}s`}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowOtp(false);
-                      setOtp("");
-                      setError("");
-                    }}
-                    disabled={loading}
-                    className="text-white hover:text-gray-200 text-[11px] font-bold mt-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Back
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-
-        </div>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
