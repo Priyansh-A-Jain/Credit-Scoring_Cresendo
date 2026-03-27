@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmailOTP = async (email) => {
-  console.log(`📧 sendEmailOTP called with email: ${email}`);
+  console.log(` sendEmailOTP called with email: ${email}`);
 
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
     throw new Error("Email credentials not configured in .env");
@@ -25,7 +25,7 @@ export const sendEmailOTP = async (email) => {
   try {
     // Try to store in Redis first
     await redisClient.setex(`emailotp:${email}`, 300, otp); // 5 minutes
-    console.log(`✅ Email OTP stored in Redis`);
+    console.log(` Email OTP stored in Redis`);
   } catch (error) {
     // Fallback to in-memory storage when Redis is unavailable.
     console.log(`⚠️ Redis error: ${error.message}`);
@@ -34,7 +34,7 @@ export const sendEmailOTP = async (email) => {
     setTimeout(() => {
       inMemoryEmailOTP.delete(`emailotp:${email}`);
     }, 300000);
-    console.log(`✅ Email OTP stored in-memory`);
+    console.log(` Email OTP stored in-memory`);
   }
 
   // Send email (always send, even in development)
@@ -85,11 +85,11 @@ export const sendEmailOTP = async (email) => {
     };
 
     // Always send email (development and production)
-    console.log(`📧 Sending email OTP to: ${email}`);
+    console.log(` Sending email OTP to: ${email}`);
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${email}`);
+    console.log(` Email sent successfully to ${email}`);
   } catch (error) {
-    console.error("❌ Error sending email:", error.message);
+    console.error("Error sending email:", error.message);
     if (process.env.NODE_ENV === "development") {
       console.warn(
         "Email delivery failed in development; continuing with debug OTP"
@@ -110,14 +110,14 @@ export const sendEmailOTP = async (email) => {
 };
 
 export const verifyEmailOTP = async (email, otp) => {
-  console.log(`🔍 Verifying email OTP for: ${email}`);
+  console.log(` Verifying email OTP for: ${email}`);
 
   let storedOTP = null;
 
   try {
     // Try to get from Redis
     storedOTP = await redisClient.get(`emailotp:${email}`);
-    console.log(`✅ Retrieved email OTP from Redis`);
+    console.log(` Retrieved email OTP from Redis`);
   } catch (error) {
     // Fallback to in-memory storage
     console.warn("Redis error, using in-memory email OTP");
@@ -125,14 +125,14 @@ export const verifyEmailOTP = async (email, otp) => {
   }
 
   if (!storedOTP) {
-    console.error(`❌ Email OTP not found or expired for: ${email}`);
+    console.error(`Email OTP not found or expired for: ${email}`);
     throw new Error(
       "Email OTP expired or not found. Please request a new OTP."
     );
   }
 
   if (storedOTP !== otp) {
-    console.error(`❌ Email OTP mismatch: expected ${storedOTP}, got ${otp}`);
+    console.error(`Email OTP mismatch: expected ${storedOTP}, got ${otp}`);
     throw new Error("Invalid email OTP");
   }
 
@@ -143,7 +143,7 @@ export const verifyEmailOTP = async (email, otp) => {
     inMemoryEmailOTP.delete(`emailotp:${email}`);
   }
 
-  console.log(`✅ Email OTP verified successfully for: ${email}`);
+  console.log(` Email OTP verified successfully for: ${email}`);
   return { message: "Email verified successfully" };
 };
 
@@ -154,13 +154,13 @@ export const sendLoanSubmittedEmail = async (
   userName,
   loanDetails
 ) => {
-  console.log(`📧 Sending loan submission confirmation to: ${userEmail}`);
+  console.log(` Sending loan submission confirmation to: ${userEmail}`);
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: userEmail,
     subject:
-      "✅ Barclays Credit - Your Loan Application Submitted Successfully",
+      " Barclays Credit - Your Loan Application Submitted Successfully",
     html: `
       <!DOCTYPE html>
       <html>
@@ -185,7 +185,7 @@ export const sendLoanSubmittedEmail = async (
             <h2>Barclays Credit Loan Platform</h2>
           </div>
           <div style="text-align: center; margin-bottom: 20px;">
-            <div class="success-badge">✅ APPLICATION SUBMITTED</div>
+            <div class="success-badge"> APPLICATION SUBMITTED</div>
           </div>
           <p>Dear ${userName},</p>
           <p>Great news! Your loan application has been successfully submitted to Barclays Credit. We are reviewing your application and will get back to you soon.</p>
@@ -245,9 +245,9 @@ export const sendLoanSubmittedEmail = async (
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Loan submission email sent to ${userEmail}`);
+    console.log(` Loan submission email sent to ${userEmail}`);
   } catch (error) {
-    console.error("❌ Error sending loan submission email:", error.message);
+    console.error("Error sending loan submission email:", error.message);
     // Don't throw - email failure shouldn't block the loan submission
   }
 };
@@ -257,7 +257,7 @@ export const sendLoanApprovedEmail = async (
   userName,
   loanDetails
 ) => {
-  console.log(`📧 Sending loan approval email to: ${userEmail}`);
+  console.log(` Sending loan approval email to: ${userEmail}`);
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -321,7 +321,7 @@ export const sendLoanApprovedEmail = async (
             </div>
             <div class="details-row">
               <span class="label">Status:</span>
-              <span class="value" style="color: #10b981; font-weight: bold;">✅ APPROVED</span>
+              <span class="value" style="color: #10b981; font-weight: bold;"> APPROVED</span>
             </div>
           </div>
 
@@ -355,9 +355,9 @@ export const sendLoanApprovedEmail = async (
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Loan approval email sent to ${userEmail}`);
+    console.log(` Loan approval email sent to ${userEmail}`);
   } catch (error) {
-    console.error("❌ Error sending loan approval email:", error.message);
+    console.error("Error sending loan approval email:", error.message);
     // Don't throw - email failure shouldn't block the approval
   }
 };
@@ -367,7 +367,7 @@ export const sendLoanRejectedEmail = async (
   userName,
   loanDetails
 ) => {
-  console.log(`📧 Sending loan rejection email to: ${userEmail}`);
+  console.log(` Sending loan rejection email to: ${userEmail}`);
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -419,20 +419,19 @@ export const sendLoanRejectedEmail = async (
             </div>
             <div class="details-row">
               <span class="label">Status:</span>
-              <span class="value" style="color: #ef4444; font-weight: bold;">❌ NOT APPROVED</span>
+              <span class="value" style="color: #ef4444; font-weight: bold;">NOT APPROVED</span>
             </div>
           </div>
 
-          ${
-            loanDetails.rejectionReason
-              ? `
+          ${loanDetails.rejectionReason
+        ? `
             <div class="reason-box">
               <p style="margin: 0; font-weight: bold; color: #7f1d1d;">Reason for Non-Approval:</p>
               <p style="margin: 10px 0 0 0; color: #1f2937;">${loanDetails.rejectionReason}</p>
             </div>
           `
-              : ""
-          }
+        : ""
+      }
 
           <div class="next-steps">
             <h4 style="margin-top: 0; color: #0284c7;">What Can You Do?</h4>
@@ -460,9 +459,9 @@ export const sendLoanRejectedEmail = async (
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Loan rejection email sent to ${userEmail}`);
+    console.log(` Loan rejection email sent to ${userEmail}`);
   } catch (error) {
-    console.error("❌ Error sending loan rejection email:", error.message);
+    console.error("Error sending loan rejection email:", error.message);
     // Don't throw - email failure shouldn't block the rejection
   }
 };

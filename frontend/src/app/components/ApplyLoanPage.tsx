@@ -138,13 +138,13 @@ export function ApplyLoanPage() {
 
   // Restore session on mount
   useEffect(() => {
-    console.log('🔍 ApplyLoanPage mounted');
+    console.log(' ApplyLoanPage mounted');
     const savedSession = loanSessionService.loadFormState();
     const wasJustSubmitted = sessionStorage.getItem('loan_submitted') === 'true';
-    
+
     console.log('📝 Saved session exists:', !!savedSession);
-    console.log('✅ Was just submitted:', wasJustSubmitted);
-    
+    console.log(' Was just submitted:', wasJustSubmitted);
+
     if (wasJustSubmitted) {
       // Just submitted - clear session and don't restore
       console.log('🧹 Clearing session after submission');
@@ -154,7 +154,7 @@ export function ApplyLoanPage() {
       setLoanType(null);
       return; // Don't restore session
     }
-    
+
     if (savedSession) {
       // Restore all state from session
       if (savedSession.step) setStep(savedSession.step);
@@ -188,7 +188,7 @@ export function ApplyLoanPage() {
       if (savedSession.businessType) setBusinessType(savedSession.businessType);
       if (savedSession.faceScanImage) setFaceScanImage(savedSession.faceScanImage);
       if (savedSession.coAppFaceScanImage) setCoAppFaceScanImage(savedSession.coAppFaceScanImage);
-      
+
       console.log("✓ Loan application session restored");
     }
   }, []);
@@ -197,15 +197,15 @@ export function ApplyLoanPage() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        console.log('🔍 Fetching user profile from:', `${API_BASE_URL}/user/profile`);
-        
+        console.log(' Fetching user profile from:', `${API_BASE_URL}/user/profile`);
+
         const response = await apiClient.get(`${API_BASE_URL}/user/profile`);
-        
-        console.log('📨 Response status:', response.status);
-        
+
+        console.log(' Response status:', response.status);
+
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ User profile received:', data);
+          console.log(' User profile received:', data);
           setUserInfo({
             fullName: data.user?.fullName || data.fullName || '',
             email: data.user?.email || data.email || '',
@@ -214,15 +214,15 @@ export function ApplyLoanPage() {
           console.log('✓ User info state updated');
         } else {
           const error = await response.text();
-          console.error('❌ Failed to fetch profile:', response.status, error);
+          console.error('Failed to fetch profile:', response.status, error);
         }
       } catch (error) {
-        console.error('❌ Error fetching user info:', error);
+        console.error('Error fetching user info:', error);
       } finally {
         setLoadingUserInfo(false);
       }
     };
-    
+
     fetchUserInfo();
   }, []);
 
@@ -433,7 +433,7 @@ export function ApplyLoanPage() {
     if (!loanAmount[0]) errors.push("Loan amount is required");
     if (!tenure) errors.push("Tenure is required");
     if (!incomeRange) errors.push("Income range is required");
-    
+
     // Personal details
     if (!dateOfBirth) errors.push("Date of birth is required");
     if (!age) errors.push("Age is required (calculated from DOB)");
@@ -473,7 +473,7 @@ export function ApplyLoanPage() {
     const validationErrors = validateRequiredFields();
     if (validationErrors.length > 0) {
       setSubmitError(validationErrors.join("\n"));
-      console.error('❌ Validation errors:', validationErrors);
+      console.error('Validation errors:', validationErrors);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -485,7 +485,7 @@ export function ApplyLoanPage() {
     try {
       // Map collateral type based on loan type
       const getCollateralType = () => {
-        switch(loanType) {
+        switch (loanType) {
           case 'home': return 'property';
           case 'auto': return 'vehicle';
           default: return 'none';
@@ -494,17 +494,17 @@ export function ApplyLoanPage() {
 
       const collateralEstimatedValue =
         loanType === 'home' ? Number(estimatedPrice || 0) :
-        loanType === 'auto' ? Number(autoPrice || 0) :
-        loanAmount[0];
+          loanType === 'auto' ? Number(autoPrice || 0) :
+            loanAmount[0];
 
       const resolvedOccupation = loanType === 'education' ? (occupation || 'Student') : occupation;
       const educationDetails = loanType === 'education'
         ? {
-            courseName,
-            university,
-            studyLocation,
-            courseDurationYears: Number(courseDuration),
-          }
+          courseName,
+          university,
+          studyLocation,
+          courseDurationYears: Number(courseDuration),
+        }
         : undefined;
 
       // Prepare loan application data for backend
@@ -557,24 +557,24 @@ export function ApplyLoanPage() {
         }),
       };
 
-      console.log('📤 Submitting loan application:', applicationPayload);
+      console.log('Submitting loan application:', applicationPayload);
 
       // Call backend API - apiClient handles token refresh automatically
       const response = await apiClient.post(`${API_BASE_URL}/loan/apply`, applicationPayload);
 
-      console.log('📨 Response received:', response.status, response.statusText);
+      console.log('Response received:', response.status, response.statusText);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Loan application submitted successfully:', data);
-        
+        console.log('Loan application submitted successfully:', data);
+
         // Set submission flag BEFORE clearing session
         sessionStorage.setItem('loan_submitted', 'true');
-        
+
         // Clear session immediately (before state reset)
         loanSessionService.clearFormState();
-        console.log('✓ Session cleared');
-        
+        console.log('Session cleared');
+
         // Reset all form state immediately
         setStep(0);
         setLoanType(null);
@@ -592,18 +592,18 @@ export function ApplyLoanPage() {
         setChildrenCount("");
         setDateOfBirth("");
         setAge("");
-        console.log('✓ Form state reset');
-        
+        console.log('Form state reset');
+
         // Navigate to My Loans to show submitted application
         setTimeout(() => {
-          console.log('🔄 Navigating to /my-loans');
+          console.log('Navigating to /my-loans');
           navigate("/my-loans");
         }, 500);
       } else {
         const error = await response.json();
         const errorMsg = error?.message || `Failed to submit application (Status: ${response.status})`;
         setSubmitError(errorMsg);
-        console.error('❌ Application submission failed:', {
+        console.error('Application submission failed:', {
           status: response.status,
           statusText: response.statusText,
           error: errorMsg
@@ -612,7 +612,7 @@ export function ApplyLoanPage() {
       }
     } catch (error: any) {
       setSubmitError(error?.message || 'An error occurred while submitting your application.');
-      console.error('❌ Error submitting application:', error);
+      console.error('Error submitting application:', error);
       setDisableAutoSave(false); // Re-enable auto-save if submission failed
     } finally {
       setIsSubmitting(false);
@@ -623,42 +623,45 @@ export function ApplyLoanPage() {
   const prevStep = () => setStep(prev => Math.max(prev - 1, 0));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
+    <div className="apply-loan-brutal min-h-screen bg-white flex flex-col text-black font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white shadow-sm flex-shrink-0 sticky top-0 z-20">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/apply-loan")}>
-              <img src="/images/download.png" alt="Barclays Logo" className="w-6 h-6 object-contain" />
-              <span className="font-serif font-bold text-xl text-slate-900 tracking-wide uppercase">CREDIT</span>
+      <header className="border-b-[1.5px] border-black bg-white flex-shrink-0 sticky top-0 z-20">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => navigate("/")}>
+              <span className="text-xl md:text-2xl font-black tracking-tighter uppercase relative">
+                CREDIT
+                <span className="absolute -right-2.5 bottom-1.5 w-1.5 h-1.5 md:w-2 mb:h-2 bg-blue-600"></span>
+              </span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <button className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-[2px] text-sm">Apply For Loan</button>
-              <button onClick={() => navigate("/my-loans")} className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium">My Loans</button>
+            <nav className="hidden md:flex items-center gap-10">
+              <button className="text-blue-600 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] border-b-[2px] border-blue-600 pb-[2px]">Apply For Loan</button>
+              <button onClick={() => navigate("/my-loans")} className="text-black/60 hover:text-black hover:opacity-100 transition-opacity text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">My Loans</button>
+              <button onClick={() => navigate("/profile")} className="text-black/60 hover:text-black hover:opacity-100 transition-opacity text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Profile</button>
             </nav>
             <Button
               onClick={() => {
                 logout();
               }}
               variant="outline"
-              className="border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 bg-white text-xs h-8 px-4 rounded-md"
+              className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-[10px] md:text-xs px-6 py-2 uppercase tracking-[0.2em] transition-all"
             >
-              Sign Out
+              SIGN OUT &rarr;
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1000px] w-full mx-auto px-4 py-8">
+      <main className="flex-1 max-w-[85%] w-full mx-auto py-12">
         {/* Progress Bar for steps 1-4 */}
         {step > 0 && (
-          <div className="mb-8">
+          <div className="mb-12">
             <div className="flex items-start justify-between mb-8">
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900 mb-1">Apply for a Loan</h1>
-                <p className="text-blue-600 text-sm font-medium">{loanOptions.find(opt => opt.id === loanType)?.title}</p>
+                <h1 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase mb-1">Apply for a Loan</h1>
+                <p className="text-blue-600 text-xs font-bold uppercase tracking-[0.2em]">{loanOptions.find(opt => opt.id === loanType)?.title}</p>
               </div>
-              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100" onClick={() => { loanSessionService.clearFormState(); setLoanType(null); setStep(0); }}>
+              <Button variant="ghost" size="sm" className="text-black/50 hover:text-black hover:bg-gray-100 border-[1.5px] border-black/10 rounded-none font-bold text-xs uppercase tracking-widest" onClick={() => { loanSessionService.clearFormState(); setLoanType(null); setStep(0); }}>
                 <X className="w-4 h-4 mr-2" /> Cancel
               </Button>
             </div>
@@ -679,68 +682,65 @@ export function ApplyLoanPage() {
                 </>
               )}
             </div> */}
-            <div className="flex gap-2 h-1.5">
+            <div className="flex gap-1 h-2">
               {(loanType === 'education' ? [1, 2, 3] : [1, 2, 3, 4]).map((i) => (
-                <div key={i} className={`flex-1 rounded-full ${step >= i ? 'bg-blue-600' : 'bg-slate-300'}`} />
+                <div key={i} className={`flex-1 transition-colors duration-300 ${step >= i ? 'bg-blue-600' : 'bg-black/10'}`} />
               ))}
             </div>
-            <p className="text-center text-sm text-slate-600 mt-4">Step {step} of {loanType === 'education' ? 3 : 4}</p>
+            <p className="text-center text-xs text-black/40 mt-4 font-bold uppercase tracking-[0.3em]">Step {step} of {loanType === 'education' ? 3 : 4}</p>
           </div>
         )}
 
         {/* STEP 0: Introduction & Type Selection */}
         {step === 0 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-semibold text-slate-900 mb-2 tracking-wide">Apply for a Loan</h1>
-              <p className="text-slate-600">Get personalized loan options and build your financial profile</p>
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="mb-12">
+              <h1 className="text-[10vw] md:text-[6vw] lg:text-[5rem] leading-[0.85] font-black tracking-tighter uppercase mb-6">
+                APPLY FOR<br />
+                <span className="text-blue-600">A LOAN.</span>
+              </h1>
+              <p className="font-bold text-lg md:text-xl text-black/50 uppercase tracking-wide max-w-lg">Get personalized loan options and build your financial profile.</p>
             </div>
 
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">Things to Keep in Mind</h3>
-                    <ul className="text-sm text-slate-700 space-y-1.5 list-disc pl-4">
-                      <li>Keep EMI within 30–40% of your income</li>
-                      <li>Start with smaller loans if you are new to credit</li>
-                      <li>Adding a co-applicant improves approval chances</li>
-                      <li>Choose loan based on need, not maximum eligibility</li>
-                      <li>Timely repayment increases future loan limits</li>
-                    </ul>
-                  </div>
+            <div className="border-[2px] border-black p-6 md:p-8 bg-white shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4">Things to Keep in Mind</h3>
+                  <ul className="text-sm text-black/70 space-y-2 font-bold">
+                    <li className="flex items-start gap-2"><span className="text-blue-600 font-black">•</span>Keep EMI within 30–40% of your income</li>
+                    <li className="flex items-start gap-2"><span className="text-blue-600 font-black">•</span>Start with smaller loans if you are new to credit</li>
+                    <li className="flex items-start gap-2"><span className="text-blue-600 font-black">•</span>Adding a co-applicant improves approval chances</li>
+                    <li className="flex items-start gap-2"><span className="text-blue-600 font-black">•</span>Choose loan based on need, not maximum eligibility</li>
+                    <li className="flex items-start gap-2"><span className="text-blue-600 font-black">•</span>Timely repayment increases future loan limits</li>
+                  </ul>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <h2 className="text-lg font-medium text-slate-900 mb-4 mt-8">Select Loan Type</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {loanOptions.map(option => (
-                <button
-                  key={option.id}
-                  onClick={() => { setLoanType(option.id); nextStep(); }}
-                  className="text-left group"
-                >
-                  <Card className="bg-white border-slate-200 hover:border-blue-600 hover:shadow-md transition-all cursor-pointer h-full">
-                    <CardContent className="p-5 flex flex-col items-start gap-4 h-full">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-200 transition-all">
-                        {(() => {
-                          const Icon = option.icon;
-                          return <Icon className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />;
-                        })()}
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">{option.title}</h3>
-                        <p className="text-xs text-slate-600">{option.desc}</p>
-                      </div>
-                      <div className="mt-auto pt-4 flex items-center text-xs font-semibold text-blue-600">
-                        Apply Now <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </button>
-              ))}
+            <div className="pt-4">
+              <h2 className="text-xs font-black tracking-[0.3em] uppercase mb-8 text-black/40">SELECT LOAN TYPE</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {loanOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => { setLoanType(option.id); nextStep(); }}
+                    className="text-left group p-8 md:p-10 flex flex-col gap-5 bg-white border-[1.5px] border-black hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all duration-300 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* {(() => {
+                        const Icon = option.icon;
+                        return <Icon className="w-5 h-5 text-blue-600 transition-colors duration-300" />;
+                      })()} */}
+                      <h3 className="font-black text-base md:text-lg uppercase tracking-tight text-black transition-colors duration-300">{option.title}</h3>
+                    </div>
+                    <p className="text-[10px] md:text-xs text-black/40 font-bold tracking-widest uppercase transition-colors duration-300">{option.desc}</p>
+                    <div className="mt-auto pt-2 flex items-center text-xs font-black text-blue-600 uppercase tracking-[0.15em] group-hover:tracking-[0.2em] transition-all duration-300">
+                      APPLY NOW <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -748,7 +748,7 @@ export function ApplyLoanPage() {
         {/* STEP 1: Basic Information */}
         {step === 1 && loanType !== 'education' && (
           <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-            <h2 className="text-2xl font-semibold text-slate-900">Your Basic Details</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase">YOUR BASIC DETAILS</h2>
 
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
@@ -756,7 +756,7 @@ export function ApplyLoanPage() {
                   <CardContent className="p-6 space-y-6">
                     {/* Pre-filled readonly */}
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-slate-700 border-b border-slate-200 pb-2">Pre-filled Identity (from Signup)</h3>
+                      <h3 className="text-xs font-black text-black/40 uppercase tracking-[0.2em] border-b-[1.5px] border-black/10 pb-3">PRE-FILLED IDENTITY (FROM SIGNUP)</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label className="text-slate-600 text-xs">Full Name</Label>
@@ -1040,23 +1040,23 @@ export function ApplyLoanPage() {
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={prevStep} className="border-slate-300 text-slate-700 hover:bg-slate-100">Back</Button>
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Continue to Configuration</Button>
+                  <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
+                  <Button type="submit" className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
                 </div>
               </div>
 
               {/* Side Info Panel */}
               <div className="space-y-4">
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardHeader className="pb-3 border-b border-blue-200">
-                    <CardTitle className="text-sm text-slate-900 flex items-center gap-2">
-                      <InfoIcon className="w-4 h-4 text-blue-600" /> Why do we need this?
+                <Card className="bg-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <CardHeader className="pb-3 border-b-[1.5px] border-black bg-blue-50/50">
+                    <CardTitle className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+                      <InfoIcon className="w-5 h-5 text-blue-600" /> WHY DO WE NEED THIS?
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-4 text-xs text-slate-600 space-y-3 leading-relaxed">
-                    <p>• Provide accurate details for better assessment and quicker approval.</p>
-                    <p>• We accept self-declared income. No strict documentation needed right now.</p>
-                    <p>• Including a co-applicant can increase your eligibility limit significantly.</p>
+                  <CardContent className="pt-4 text-xs font-bold text-slate-800 space-y-4 leading-relaxed tracking-wide uppercase">
+                    <p className="flex gap-2"><span className="text-blue-600 font-black">•</span> PROVIDE ACCURATE DETAILS FOR BETTER ASSESSMENT AND QUICKER APPROVAL.</p>
+                    <p className="flex gap-2"><span className="text-blue-600 font-black">•</span> WE ACCEPT SELF-DECLARED INCOME. NO STRICT DOCUMENTATION NEEDED RIGHT NOW.</p>
+                    <p className="flex gap-2"><span className="text-blue-600 font-black">•</span> INCLUDING A CO-APPLICANT CAN INCREASE YOUR ELIGIBILITY LIMIT SIGNIFICANTLY.</p>
                   </CardContent>
                 </Card>
               </div>
@@ -1067,7 +1067,7 @@ export function ApplyLoanPage() {
         {/* STEP 2: Loan Details + EMI + Occupation */}
         {step === 2 && loanType !== 'education' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-            <h2 className="text-2xl font-semibold text-slate-900">Loan Configuration</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase">LOAN CONFIGURATION</h2>
 
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
@@ -1128,8 +1128,8 @@ export function ApplyLoanPage() {
                           <div
                             onClick={() => setBusinessType("msme")}
                             className={`border rounded-lg p-3 text-center cursor-pointer transition-all text-sm font-medium
-                              ${businessType === 'msme' 
-                                ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]' 
+                              ${businessType === 'msme'
+                                ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]'
                                 : 'bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
                           >
                             Micro, Small & Medium Enterprise (MSME)
@@ -1137,8 +1137,8 @@ export function ApplyLoanPage() {
                           <div
                             onClick={() => setBusinessType("large")}
                             className={`border rounded-lg p-3 text-center cursor-pointer transition-all text-sm font-medium
-                              ${businessType === 'large' 
-                                ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]' 
+                              ${businessType === 'large'
+                                ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]'
                                 : 'bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
                           >
                             Large Enterprise
@@ -1168,8 +1168,8 @@ export function ApplyLoanPage() {
                               key={occ}
                               onClick={() => setOccupation(occ)}
                               className={`border rounded-lg p-3 text-center cursor-pointer transition-all text-xs font-medium
-                                ${occupation === occ 
-                                  ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]' 
+                                ${occupation === occ
+                                  ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-[0_0_10px_rgba(37,99,235,0.15)]'
                                   : 'bg-slate-50 border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
                             >
                               {occ}
@@ -1183,43 +1183,43 @@ export function ApplyLoanPage() {
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={prevStep} className="border-slate-300 text-slate-700 hover:bg-slate-100">Back</Button>
-                  <Button onClick={nextStep} className="bg-blue-600 hover:bg-blue-700 text-white">Continue to Details</Button>
+                  <Button variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
+                  <Button onClick={nextStep} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
                 </div>
               </div>
 
               {/* EMI Calculator Panel */}
               <div className="space-y-4 relative">
                 <div className="sticky top-[88px]">
-                  <Card className="bg-gradient-to-b from-white to-slate-50 border-slate-300 shadow-lg">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-base text-slate-900">EMI Estimate</CardTitle>
-                      <CardDescription className="text-xs text-slate-600">Calculated at ~14.0% p.a.</CardDescription>
+                  <Card className="bg-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                    <CardHeader className="pb-4 border-b-[1.5px] border-black bg-slate-50">
+                      <CardTitle className="text-lg font-black text-black uppercase tracking-widest">EMI Estimate</CardTitle>
+                      <CardDescription className="text-xs font-bold text-slate-500 uppercase tracking-widest">Calculated at ~14.0% p.a.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-6 pt-6">
 
-                      <div className="text-center pb-4 border-b border-slate-300">
-                        <p className="text-xs text-slate-600 mb-1">Monthly EMI</p>
-                        <p className="text-4xl font-bold text-slate-900 tracking-tight">₹{Math.round(emi).toLocaleString('en-IN')}</p>
+                      <div className="text-center pb-6 border-b-[1.5px] border-black">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Monthly EMI</p>
+                        <p className="text-5xl font-black text-black tracking-tighter">₹{Math.round(emi).toLocaleString('en-IN')}</p>
 
-                        <div className={`mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${getEmiRisk().bg} ${getEmiRisk().color}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full bg-current`}></div>
-                          {getEmiRisk().text}
+                        <div className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 border-[1.5px] border-black uppercase tracking-wider ${getEmiRisk().bg} ${getEmiRisk().color}`}>
+                          <div className={`w-2 h-2 bg-current`}></div>
+                          {getEmiRisk().text} RISK
                         </div>
                       </div>
 
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between items-center text-slate-600">
-                          <span>Principal Amount</span>
-                          <span className="text-slate-900 font-medium">₹{loanAmount[0].toLocaleString('en-IN')}</span>
+                      <div className="space-y-4 text-sm font-bold uppercase tracking-wider text-slate-800">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500">Principal Amount</span>
+                          <span className="text-black text-base">₹{loanAmount[0].toLocaleString('en-IN')}</span>
                         </div>
-                        <div className="flex justify-between items-center text-slate-600">
-                          <span>Total Interest</span>
-                          <span className="text-slate-900 font-medium">₹{Math.round(totalInterest).toLocaleString('en-IN')}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500">Total Interest</span>
+                          <span className="text-black text-base">₹{Math.round(totalInterest).toLocaleString('en-IN')}</span>
                         </div>
-                        <div className="flex justify-between items-center text-slate-900 font-semibold pt-2 border-t border-slate-300">
+                        <div className="flex justify-between items-center text-black pt-4 border-t-[1.5px] border-black">
                           <span>Total Payable</span>
-                          <span className="text-blue-600">₹{Math.round(totalPayable).toLocaleString('en-IN')}</span>
+                          <span className="text-blue-600 text-lg">₹{Math.round(totalPayable).toLocaleString('en-IN')}</span>
                         </div>
                       </div>
 
@@ -1234,8 +1234,8 @@ export function ApplyLoanPage() {
         {/* STEP 3: Loan specific details & Occupation specific questions */}
         {step === 3 && loanType !== 'education' && (
           <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-            <h2 className="text-2xl font-semibold text-slate-900">Additional Details</h2>
-            <p className="text-sm text-slate-600 mt-[-16px]">Based on your selection, we need a few more particulars.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase">ADDITIONAL DETAILS</h2>
+            <p className="text-xs font-bold text-black/40 uppercase tracking-[0.2em] mt-[-16px]">Based on your selection, we need a few more particulars.</p>
 
             <Card className="bg-white border-slate-300">
               <CardContent className="p-6 space-y-8">
@@ -1250,185 +1250,188 @@ export function ApplyLoanPage() {
                   <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2 tracking-wide uppercase">
                     Loan Purpose
                   </h3>
-                  <div className="space-y-1.5 border-b border-slate-200 pb-6">
+                  <div className="space-y-2 mb-8">
                     <Label className="text-slate-700 text-xs font-medium">Please briefly describe the purpose of your loan</Label>
-                    <Input placeholder="e.g. Home renovation, medical emergency, wedding..." className="bg-white border-slate-300 text-slate-900" />
+                    <Input placeholder="e.g. Home renovation, medical emergency, wedding..." className="bg-white border-slate-300 text-slate-900 p-3 h-12" />
                   </div>
                 </div>
 
                 {/* Section B: Occupation Specific */}
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2 tracking-wide uppercase mb-4">
-                    <Briefcase className="w-4 h-4" />
-                    {occupation === 'Salaried' ? 'Employment Details' :
-                      occupation === 'Self-employed' ? 'Business Details' :
-                        occupation === 'Gig Worker' ? 'Platform Work Details' :
-                          ['Homemaker', 'Student', 'Unemployed'].includes(occupation) ? 'Financial Support Details' :
-                            occupation === 'Farmer' ? 'Agricultural Details' :
-                              occupation === 'Retired' ? 'Income Details' : 'Details'}
-                  </h3>
+                {occupation ? (
+                  <div className="space-y-4 pt-6 mt-8 border-t-[1.5px] border-black border-dashed">
+                    <h3 className="text-sm font-semibold text-blue-600 flex items-center gap-2 tracking-wide uppercase mb-4">
+                      <Briefcase className="w-4 h-4" />
+                      {occupation === 'Salaried' ? 'Employment Details' :
+                        occupation === 'Self-employed' ? 'Business Details' :
+                          occupation === 'Gig Worker' ? 'Platform Work Details' :
+                            ['Homemaker', 'Student', 'Unemployed'].includes(occupation) ? 'Financial Support Details' :
+                              occupation === 'Farmer' ? 'Agricultural Details' :
+                                occupation === 'Retired' ? 'Income Details' : 'Details'}
+                    </h3>
 
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    {/* DYNAMIC FIELDS based on Occupation */}
 
-                    {occupation === 'Salaried' && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Company Name</Label>
-                          <Input placeholder="e.g. TCS, Infosys" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Employment Type</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="perm">Permanent</SelectItem><SelectItem value="contract">Contract</SelectItem><SelectItem value="temp">Temporary</SelectItem></SelectContent></Select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Years in Current Job</Label>
-                          <Input type="number" placeholder="e.g. 3" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Total Work Experience (Optional)</Label>
-                          <Input type="number" placeholder="e.g. 8" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                      </>
-                    )}
+                    <div className="grid sm:grid-cols-2 gap-5">
+                      {/* DYNAMIC FIELDS based on Occupation */}
 
-                    {(occupation === 'Self-employed' || loanType === 'business') && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Type of Business</Label>
-                          <Input placeholder="e.g. Retail Shop, Freelance IT" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Business Age (Years)</Label>
-                          <Input type="number" placeholder="e.g. 5" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Average Monthly Revenue</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<50k">Below ₹50,000</SelectItem><SelectItem value="50k-2L">₹50K - ₹2L</SelectItem><SelectItem value=">2L">Above ₹2L</SelectItem></SelectContent></Select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Average Monthly Profit (Optional)</Label>
-                          <Input placeholder="approximate exact value" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Income Consistency</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="high">High (Predictable)</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low (Highly Variable)</SelectItem></SelectContent></Select>
-                        </div>
-                      </>
-                    )}
-
-                    {occupation === 'Gig Worker' && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Platform Name</Label>
-                          <Input placeholder="e.g. Uber, Swiggy, Urban Company" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Duration of Work (Months)</Label>
-                          <Input type="number" placeholder="e.g. 14" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Average Monthly Income</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<15k">Below ₹15,000</SelectItem><SelectItem value="15k-30k">₹15K - ₹30K</SelectItem><SelectItem value=">30k">Above ₹30K</SelectItem></SelectContent></Select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Weekly Working Hours</Label>
-                          <Input type="number" placeholder="e.g. 40" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs font-medium">Income Consistency</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="high">High</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low</SelectItem></SelectContent></Select>
-                        </div>
-                      </>
-                    )}
-
-                    {['Homemaker', 'Student', 'Unemployed'].includes(occupation) && (
-                      <div className="col-span-1 sm:col-span-2 space-y-6">
-                        <div className="space-y-3">
-                          <Label className="text-slate-900">Do you have a co-applicant or guarantor?</Label>
-                          <RadioGroup defaultValue="yes" onValueChange={setCoApplicant} className="flex gap-6">
-                            <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="co-yes" className="border-slate-400 text-blue-600" /><Label htmlFor="co-yes" className="text-slate-700">Yes</Label></div>
-                            <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="co-no" className="border-slate-400 text-blue-600" /><Label htmlFor="co-no" className="text-slate-700">No</Label></div>
-                          </RadioGroup>
-                        </div>
-
-                        {coApplicant === 'yes' ? (
-                          <div className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                            <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Co-applicant Name</Label><Input placeholder="Name" className="bg-white border-slate-300 text-slate-900" /></div>
-                            <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Relationship</Label><Input placeholder="e.g. Spouse, Parent" className="bg-white border-slate-300 text-slate-900" /></div>
-                            <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Co-applicant Income Range</Label>
-                              <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<25k">Below ₹25,000</SelectItem><SelectItem value="25-50k">₹25,000 - ₹50,000</SelectItem><SelectItem value=">50k">Above ₹50,000</SelectItem></SelectContent></Select>
-                            </div>
+                      {occupation === 'Salaried' && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Company Name</Label>
+                            <Input placeholder="e.g. TCS, Infosys" className="bg-white border-slate-300 text-slate-900" />
                           </div>
-                        ) : (
-                          <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-                            <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-700 text-sm flex gap-2">
-                              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                              <p>Adding a co-applicant significantly increases your approval chances.</p>
-                            </div>
-                            <div className="space-y-3">
-                              <Label className="text-slate-900">Do you own any physical or financial assets?</Label>
-                              <RadioGroup defaultValue="no" className="flex gap-6">
-                                <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="ast-yes" className="border-slate-400 text-blue-600" /><Label htmlFor="ast-yes" className="text-slate-700">Yes</Label></div>
-                                <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="ast-no" className="border-slate-400 text-blue-600" /><Label htmlFor="ast-no" className="text-slate-700">No</Label></div>
-                              </RadioGroup>
-                            </div>
-                            <div className="grid sm:grid-cols-2 gap-4">
-                              <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Asset Type</Label><Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="gold">Gold</SelectItem><SelectItem value="property">Property</SelectItem><SelectItem value="savings">Savings / FDs</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
-                              <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Estimated Asset Value</Label><Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" /></div>
-                            </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Employment Type</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="perm">Permanent</SelectItem><SelectItem value="contract">Contract</SelectItem><SelectItem value="temp">Temporary</SelectItem></SelectContent></Select>
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Years in Current Job</Label>
+                            <Input type="number" placeholder="e.g. 3" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Total Work Experience (Optional)</Label>
+                            <Input type="number" placeholder="e.g. 8" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                        </>
+                      )}
 
-                    {occupation === 'Farmer' && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Land Ownership</Label>
-                          <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="owned">Owned</SelectItem><SelectItem value="leased">Leased</SelectItem></SelectContent></Select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Total Land Area (Acres)</Label>
-                          <Input type="number" step="0.1" placeholder="e.g. 5.5" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Primary Crop Type</Label>
-                          <Input placeholder="e.g. Wheat, Rice, Sugarcane" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Estimated Seasonal Income</Label>
-                          <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5 sm:col-span-2">
-                          <Label className="text-slate-600 text-xs">Other Income Sources (Optional)</Label>
-                          <Input placeholder="e.g. Dairy, Poultry, Labour" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                      </>
-                    )}
+                      {(occupation === 'Self-employed' || loanType === 'business') && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Type of Business</Label>
+                            <Input placeholder="e.g. Retail Shop, Freelance IT" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Business Age (Years)</Label>
+                            <Input type="number" placeholder="e.g. 5" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Average Monthly Revenue</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<50k">Below ₹50,000</SelectItem><SelectItem value="50k-2L">₹50K - ₹2L</SelectItem><SelectItem value=">2L">Above ₹2L</SelectItem></SelectContent></Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Average Monthly Profit (Optional)</Label>
+                            <Input placeholder="approximate exact value" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Income Consistency</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="high">High (Predictable)</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low (Highly Variable)</SelectItem></SelectContent></Select>
+                          </div>
+                        </>
+                      )}
 
-                    {occupation === 'Retired' && (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Monthly Pension Amount</Label>
-                          <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
+                      {occupation === 'Gig Worker' && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Platform Name</Label>
+                            <Input placeholder="e.g. Uber, Swiggy, Urban Company" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Duration of Work (Months)</Label>
+                            <Input type="number" placeholder="e.g. 14" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Average Monthly Income</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<15k">Below ₹15,000</SelectItem><SelectItem value="15k-30k">₹15K - ₹30K</SelectItem><SelectItem value=">30k">Above ₹30K</SelectItem></SelectContent></Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Weekly Working Hours</Label>
+                            <Input type="number" placeholder="e.g. 40" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs font-medium">Income Consistency</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="high">High</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="low">Low</SelectItem></SelectContent></Select>
+                          </div>
+                        </>
+                      )}
+
+                      {['Homemaker', 'Student', 'Unemployed'].includes(occupation) && (
+                        <div className="col-span-1 sm:col-span-2 space-y-6">
+                          <div className="space-y-3">
+                            <Label className="text-slate-900">Do you have a co-applicant or guarantor?</Label>
+                            <RadioGroup defaultValue="yes" onValueChange={setCoApplicant} className="flex gap-6">
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="co-yes" className="border-slate-400 text-blue-600" /><Label htmlFor="co-yes" className="text-slate-700">Yes</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="co-no" className="border-slate-400 text-blue-600" /><Label htmlFor="co-no" className="text-slate-700">No</Label></div>
+                            </RadioGroup>
+                          </div>
+
+                          {coApplicant === 'yes' ? (
+                            <div className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                              <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Co-applicant Name</Label><Input placeholder="Name" className="bg-white border-slate-300 text-slate-900" /></div>
+                              <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Relationship</Label><Input placeholder="e.g. Spouse, Parent" className="bg-white border-slate-300 text-slate-900" /></div>
+                              <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Co-applicant Income Range</Label>
+                                <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Range" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="<25k">Below ₹25,000</SelectItem><SelectItem value="25-50k">₹25,000 - ₹50,000</SelectItem><SelectItem value=">50k">Above ₹50,000</SelectItem></SelectContent></Select>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                              <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-700 text-sm flex gap-2">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <p>Adding a co-applicant significantly increases your approval chances.</p>
+                              </div>
+                              <div className="space-y-3">
+                                <Label className="text-slate-900">Do you own any physical or financial assets?</Label>
+                                <RadioGroup defaultValue="no" className="flex gap-6">
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="yes" id="ast-yes" className="border-slate-400 text-blue-600" /><Label htmlFor="ast-yes" className="text-slate-700">Yes</Label></div>
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="no" id="ast-no" className="border-slate-400 text-blue-600" /><Label htmlFor="ast-no" className="text-slate-700">No</Label></div>
+                                </RadioGroup>
+                              </div>
+                              <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Asset Type</Label><Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="gold">Gold</SelectItem><SelectItem value="property">Property</SelectItem><SelectItem value="savings">Savings / FDs</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
+                                <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Estimated Asset Value</Label><Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" /></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Other Income Sources (Optional)</Label>
-                          <Input placeholder="e.g. Rent, Fixed Deposits" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Number of Dependents</Label>
-                          <Input type="number" placeholder="e.g. 1" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Average Monthly Expenses</Label>
-                          <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
-                        </div>
-                      </>
-                    )}
+                      )}
+
+                      {occupation === 'Farmer' && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Land Ownership</Label>
+                            <Select><SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select" /></SelectTrigger><SelectContent className="bg-white border-slate-300 text-slate-900"><SelectItem value="owned">Owned</SelectItem><SelectItem value="leased">Leased</SelectItem></SelectContent></Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Total Land Area (Acres)</Label>
+                            <Input type="number" step="0.1" placeholder="e.g. 5.5" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Primary Crop Type</Label>
+                            <Input placeholder="e.g. Wheat, Rice, Sugarcane" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Estimated Seasonal Income</Label>
+                            <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <Label className="text-slate-600 text-xs">Other Income Sources (Optional)</Label>
+                            <Input placeholder="e.g. Dairy, Poultry, Labour" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                        </>
+                      )}
+
+                      {occupation === 'Retired' && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Monthly Pension Amount</Label>
+                            <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Other Income Sources (Optional)</Label>
+                            <Input placeholder="e.g. Rent, Fixed Deposits" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Number of Dependents</Label>
+                            <Input type="number" placeholder="e.g. 1" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-slate-600 text-xs">Average Monthly Expenses</Label>
+                            <Input placeholder="₹" className="bg-white border-slate-300 text-slate-900" />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
                 {loanType === 'home' && (
                   <div className="space-y-4 pt-6 border-t border-slate-200">
@@ -1661,8 +1664,8 @@ export function ApplyLoanPage() {
             </Card>
 
             <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={prevStep} className="border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900">Back</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Review Application</Button>
+              <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
+              <Button type="submit" className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">REVIEW APPLICATION &rarr;</Button>
             </div>
           </form>
         )}
@@ -1674,54 +1677,54 @@ export function ApplyLoanPage() {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900 mb-2">Review Your Application</h2>
-              <p className="text-slate-600 text-sm">Please verify the details before final submission.</p>
+              <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase mb-2">REVIEW YOUR APPLICATION</h2>
+              <p className="text-xs font-bold text-black/40 uppercase tracking-[0.2em]">Please verify the details before final submission.</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Card className="bg-white border-slate-300">
-                <CardContent className="p-5 flex flex-col gap-1">
-                  <span className="text-xs text-slate-600 uppercase font-medium">Loan Request</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-lg font-semibold text-slate-900">{loanOptions.find(o => o.id === loanType)?.title}</span>
-                  </div>
-                  <span className="text-2xl font-bold text-blue-600 mt-2">₹{loanAmount[0].toLocaleString('en-IN')}</span>
-                  <span className="text-sm text-slate-600">for {tenure} months</span>
-                </CardContent>
-              </Card>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="border-[1.5px] border-black bg-white p-6 flex flex-col justify-between h-full relative shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="space-y-1 z-10">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.15em]">Loan Request</span>
+                  <h3 className="text-xl font-black text-black uppercase tracking-tighter">{loanOptions.find(o => o.id === loanType)?.title}</h3>
+                </div>
+                <div className="mt-6 z-10">
+                  <p className="text-4xl font-black text-blue-600 tracking-tighter">₹{loanAmount[0].toLocaleString('en-IN')}</p>
+                  <p className="text-sm font-bold text-black uppercase tracking-wider mt-1">for {tenure} months</p>
+                </div>
+              </div>
 
-              <Card className="bg-white border-slate-300">
-                <CardContent className="p-5 flex flex-col gap-1">
-                  <span className="text-xs text-slate-600 uppercase font-medium">Repayment</span>
-                  <span className="text-2xl font-bold text-slate-900 mt-1">₹{Math.round(emi).toLocaleString('en-IN')} <span className="text-sm font-normal text-slate-600">/mo</span></span>
+              <div className="border-[1.5px] border-black bg-slate-50 p-6 flex flex-col justify-between h-full shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="space-y-1">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.15em]">Repayment</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <p className="text-4xl font-black text-black tracking-tighter">₹{Math.round(emi).toLocaleString('en-IN')}</p>
+                    <span className="text-sm font-bold text-black/40 uppercase tracking-widest">/MO</span>
+                  </div>
+                </div>
+                <div className={`mt-6 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 border-[1.5px] border-black uppercase tracking-wider ${getEmiRisk().bg} ${getEmiRisk().color} w-fit`}>
+                  <div className={`w-2 h-2 bg-current`}></div>
+                  {getEmiRisk().text} RISK
+                </div>
+              </div>
 
-                  <div className={`mt-auto pt-2 inline-flex items-center gap-1.5 text-xs font-medium \${getEmiRisk().color}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full bg-current`}></div>
-                    {getEmiRisk().text} EMI Risk
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-50 border-slate-300 sm:col-span-2">
-                <CardContent className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 divide-x divide-slate-200">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-slate-600">Applicant</span>
-                    <span className="text-sm font-medium text-slate-900">User Name</span>
-                  </div>
-                  <div className="flex flex-col gap-1 pl-4">
-                    <span className="text-xs text-slate-600">Occupation</span>
-                    <span className="text-sm font-medium text-slate-900">{occupation}</span>
-                  </div>
-                  <div className="flex flex-col gap-1 pl-4">
-                    <span className="text-xs text-slate-600">Income Bracket</span>
-                    <span className="text-sm font-medium text-slate-900">{incomeRange}</span>
-                  </div>
-                  <div className="flex flex-col gap-1 pl-4">
-                    <span className="text-xs text-slate-600">Co-applicant</span>
-                    <span className="text-sm font-medium text-slate-900 capitalize">{coApplicant}</span>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="sm:col-span-2 border-[1.5px] border-black bg-white p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x-[1.5px] divide-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="flex flex-col gap-1 sm:pt-0 pt-0">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Applicant</span>
+                  <span className="text-base font-black text-black uppercase tracking-tight truncate">User Name</span>
+                </div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Occupation</span>
+                  <span className="text-base font-black text-black uppercase tracking-tight truncate">{occupation || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Income Bracket</span>
+                  <span className="text-base font-black text-black uppercase tracking-tight truncate">{incomeRange || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Co-applicant</span>
+                  <span className="text-base font-black text-black uppercase tracking-tight truncate">{coApplicant || 'None'}</span>
+                </div>
+              </div>
             </div>
 
             <Card className="bg-green-50 border-green-300">
@@ -1734,10 +1737,10 @@ export function ApplyLoanPage() {
               </CardContent>
             </Card>
 
-            <div className="flex justify-between items-center pt-6 border-t border-slate-200">
-              <Button variant="ghost" onClick={prevStep} className="text-slate-700 hover:text-slate-900 hover:bg-slate-100" disabled={isSubmitting}>Edit Details</Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white px-8">
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+            <div className="flex justify-between items-center pt-8 border-t-[1.5px] border-black">
+              <Button variant="ghost" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3" disabled={isSubmitting}>EDIT DETAILS</Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white hover:bg-blue-700 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-8 py-3 transition-all">
+                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT APPLICATION →'}
               </Button>
             </div>
           </div>
@@ -1748,7 +1751,7 @@ export function ApplyLoanPage() {
         {/* EDU STEP 1: Basic Information */}
         {step === 1 && loanType === 'education' && (
           <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-            <h2 className="text-2xl font-semibold text-slate-900">Student Details</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase">STUDENT DETAILS</h2>
 
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
@@ -1760,7 +1763,7 @@ export function ApplyLoanPage() {
                         <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Full Name</Label><Input value={loadingUserInfo ? "Loading..." : userInfo.fullName} readOnly className="bg-slate-100 border-slate-300 text-slate-900" /></div>
                         <div className="space-y-1.5">
                           <Label className="text-slate-600 text-xs">Date of Birth</Label>
-                          <Input 
+                          <Input
                             type="text"
                             placeholder="DD-MM-YYYY"
                             value={dateOfBirth}
@@ -1769,17 +1772,17 @@ export function ApplyLoanPage() {
                               const calculatedAge = calculateAge(e.target.value);
                               if (calculatedAge) setAge(calculatedAge);
                             }}
-                            className="bg-white border-slate-300 text-slate-900" 
+                            className="bg-white border-slate-300 text-slate-900"
                           />
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-slate-600 text-xs">Age (Years)</Label>
-                          <Input 
+                          <Input
                             type="text"
                             value={age}
                             onChange={(e) => setAge(e.target.value)}
                             placeholder="Auto-calculated from DOB"
-                            className="bg-white border-slate-300 text-slate-900" 
+                            className="bg-white border-slate-300 text-slate-900"
                           />
                         </div>
                         <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Phone Number</Label><Input value={loadingUserInfo ? "Loading..." : userInfo.phone} readOnly className="bg-slate-100 border-slate-300 text-slate-900" /></div>
@@ -1902,8 +1905,8 @@ export function ApplyLoanPage() {
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={prevStep} className="border-slate-300 text-slate-700 hover:bg-slate-100">Back</Button>
-                  <Button type="submit" disabled={false} className="bg-blue-600 hover:bg-blue-700 text-white">Continue to Study Details</Button>
+                  <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
+                  <Button type="submit" disabled={false} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
                 </div>
               </div>
 
@@ -1922,7 +1925,7 @@ export function ApplyLoanPage() {
         {/* EDU STEP 2: Loan + Study Details */}
         {step === 2 && loanType === 'education' && (
           <form onSubmit={(e) => { e.preventDefault(); nextStep(); }} className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
-            <h2 className="text-2xl font-semibold text-slate-900">Loan & Education Details</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase">LOAN & EDUCATION DETAILS</h2>
 
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
@@ -1930,22 +1933,22 @@ export function ApplyLoanPage() {
                   <CardContent className="p-6 space-y-8">
 
                     {/* Loan specific */}
-                    <div className="space-y-4 border-b border-slate-200 pb-6">
-                      <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide">1. Loan Parameters</h3>
+                    <div className="space-y-4 border-b-[1.5px] border-black pb-8">
+                      <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest">1. Loan Parameters</h3>
 
                       <div className="flex justify-between items-end">
-                        <Label className="text-slate-600 text-sm">Desired Loan Amount</Label>
-                        <div className="bg-slate-50 border border-slate-300 rounded-md px-3 py-1 flex items-center gap-2">
-                          <span className="text-slate-600">₹</span>
-                          <Input type="number" className="bg-transparent border-0 h-8 w-28 text-right text-lg font-bold text-slate-900 focus-visible:ring-0 p-0" value={loanAmount[0]} onChange={(e) => setLoanAmount([Number(e.target.value)])} />
+                        <Label className="text-black font-black uppercase tracking-wider text-xs">Desired Loan Amount</Label>
+                        <div className="bg-white border-[1.5px] border-black px-3 py-1.5 flex items-center gap-2">
+                          <span className="text-black font-bold">₹</span>
+                          <Input type="number" className="bg-transparent border-0 h-8 w-28 text-right text-lg font-black text-black focus-visible:ring-0 p-0" value={loanAmount[0]} onChange={(e) => setLoanAmount([Number(e.target.value)])} />
                         </div>
                       </div>
                       <Slider max={5000000} min={50000} step={10000} value={loanAmount} onValueChange={setLoanAmount} className="py-4" />
 
-                      <div className="space-y-3 mt-4">
-                        <Label className="text-slate-600 text-sm">Target Repayment Tenure (Years)</Label>
+                      <div className="space-y-3 mt-6">
+                        <Label className="text-black font-black uppercase tracking-wider text-xs">Target Repayment Tenure (Years)</Label>
                         <Select value={tenure} onValueChange={setTenure}>
-                          <SelectTrigger className="bg-white border-slate-300 text-slate-900 font-medium"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="bg-white border-[1.5px] border-black text-black font-black h-12 rounded-none px-4"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-white border-slate-300 text-slate-900">
                             <SelectItem value="36">3 Years</SelectItem>
                             <SelectItem value="60">5 Years</SelectItem>
@@ -1953,17 +1956,17 @@ export function ApplyLoanPage() {
                             <SelectItem value="120">10 Years</SelectItem>
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-slate-600 italic mt-1">Repayment typically begins after course completion.</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2 px-1">Repayment typically begins after course completion.</p>
                       </div>
                     </div>
 
                     {/* Education specific */}
-                    <div className="space-y-4 border-b border-slate-200 pb-6">
-                      <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide">2. Study Details</h3>
+                    <div className="space-y-4 border-b-[1.5px] border-black pb-8">
+                      <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest">2. Study Details</h3>
 
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5 pt-1">
-                          <Label className="text-xs text-slate-600">Course Name <span className="text-red-500">*</span></Label>
+                      <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2 pt-1">
+                          <Label className="text-xs text-black font-black uppercase tracking-wider">Course Name <span className="text-red-500">*</span></Label>
                           <Select value={courseName} onValueChange={setCourseName}>
                             <SelectTrigger className="bg-white border-slate-300 text-slate-900"><SelectValue placeholder="Select Course" /></SelectTrigger>
                             <SelectContent className="bg-white border-slate-300 text-slate-900 max-h-[300px] overflow-y-auto">
@@ -2024,35 +2027,40 @@ export function ApplyLoanPage() {
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={prevStep} className="border-slate-300 text-slate-700 hover:bg-slate-100">Back</Button>
-                  <Button type="submit" disabled={false} className="bg-blue-600 hover:bg-blue-700 text-white">Review & Submit</Button>
+                  <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
+                  <Button type="submit" disabled={false} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">REVIEW & SUBMIT &rarr;</Button>
                 </div>
               </div>
 
               {/* Education Dashboard Insights */}
-              <div className="space-y-4">
-                <Card className="bg-gradient-to-b from-white to-slate-50 border-slate-300 shadow-lg">
-                  <CardHeader className="pb-4"><CardTitle className="text-base text-slate-900">Repayment Estimate</CardTitle></CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="text-center pb-4 border-b border-white/10">
-                      <p className="text-xs text-slate-600 mb-1">Estimated EMI (After Grad)</p>
-                      <p className="text-4xl font-bold text-blue-600 tracking-tight">₹{Math.round(emi).toLocaleString('en-IN')}</p>
+              <div className="space-y-6 pt-2">
+                <Card className="bg-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <CardHeader className="pb-4 border-b-[1.5px] border-black bg-slate-50"><CardTitle className="text-lg font-black text-black uppercase tracking-widest">Repayment Estimate</CardTitle></CardHeader>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="text-center pb-6 border-b-[1.5px] border-black">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Estimated EMI (After Grad)</p>
+                      <p className="text-5xl font-black text-black tracking-tighter">₹{Math.round(emi).toLocaleString('en-IN')}</p>
                     </div>
-                    <div className="space-y-4 text-sm">
-                      <div className="flex justify-between items-center text-slate-600"><span>Course Duration</span><span className="text-slate-900 font-medium">{courseDuration || "0"} Years</span></div>
-                      <div className="flex justify-between items-center text-slate-600"><span>Target Tenure</span><span className="text-slate-900 font-medium">{Number(tenure) / 12} Years</span></div>
-                      <div className="flex flex-col gap-1 items-start text-xs font-semibold pt-4 border-t border-slate-200">
-                        <span className="text-slate-700 bg-blue-50 px-2 py-1 rounded w-full flex gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> Repayment will begin after your course duration ends ({courseDuration || "0"} Years).</span>
+                    <div className="space-y-4 text-sm font-bold uppercase tracking-wider text-slate-800">
+                      <div className="flex justify-between items-center text-slate-600"><span className="text-slate-500">Course Duration</span><span className="text-black font-black text-base">{courseDuration || "0"} Years</span></div>
+                      <div className="flex justify-between items-center text-slate-600"><span className="text-slate-500">Target Tenure</span><span className="text-black font-black text-base">{Number(tenure) / 12} Years</span></div>
+                      <div className="flex flex-col gap-1 items-start text-xs font-semibold pt-4 border-t-[1.5px] border-black">
+                        <span className="text-black font-black uppercase tracking-widest flex gap-2.5 items-center mt-2 w-full"><CheckCircle2 className="w-5 h-5 text-blue-600" /> Repayment begins in {courseDuration || "0"} Years.</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start gap-2 text-xs text-slate-700"><InfoIcon className="w-4 h-4 text-blue-600 flex-shrink-0" /><p>Higher course duration delays repayment start but accrues simple interest.</p></div>
-                    <div className="flex items-start gap-2 text-xs text-slate-700"><InfoIcon className="w-4 h-4 text-blue-600 flex-shrink-0" /><p>Higher loan amount increases your future monthly EMI after graduation.</p></div>
-                    <div className="flex items-start gap-2 text-xs text-slate-700"><InfoIcon className="w-4 h-4 text-blue-600 flex-shrink-0" /><p>Include a co-applicant in Step 1 to maximize approval thresholds.</p></div>
+                <Card className="bg-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <CardHeader className="pb-3 border-b-[1.5px] border-black bg-blue-50/50">
+                    <CardTitle className="text-sm font-black text-black uppercase tracking-widest flex items-center gap-2">
+                      <InfoIcon className="w-5 h-5 text-blue-600" /> IMPORTANT INFO
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 text-xs font-bold text-slate-800 space-y-4 leading-relaxed tracking-wide uppercase">
+                    <div className="flex items-start gap-2"><span className="text-blue-600 font-black flex-shrink-0">•</span><p>Higher course duration delays repayment start but accrues simple interest.</p></div>
+                    <div className="flex items-start gap-2"><span className="text-blue-600 font-black flex-shrink-0">•</span><p>Higher loan amount increases your future monthly EMI after graduation.</p></div>
+                    <div className="flex items-start gap-2"><span className="text-blue-600 font-black flex-shrink-0">•</span><p>Include a co-applicant in Step 1 to maximize approval thresholds.</p></div>
                   </CardContent>
                 </Card>
               </div>
@@ -2065,43 +2073,46 @@ export function ApplyLoanPage() {
           <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-300 max-w-3xl mx-auto">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"><FileText className="w-8 h-8 text-blue-600" /></div>
-              <h2 className="text-2xl font-semibold text-slate-900 mb-2">Review Education Application</h2>
-              <p className="text-slate-600 text-sm">Almost there! Your profile is tailored as a Student.</p>
+              <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter uppercase mb-2">REVIEW EDUCATION APPLICATION</h2>
+              <p className="text-xs font-bold text-black/40 uppercase tracking-[0.2em]">Almost there! Your profile is tailored as a Student.</p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Card className="bg-white border-slate-300">
-                <CardContent className="p-5 flex flex-col gap-1">
-                  <span className="text-xs text-slate-600 uppercase font-medium">Education Loan</span>
-                  <span className="text-2xl font-bold text-blue-600 mt-2">₹{loanAmount[0].toLocaleString('en-IN')}</span>
-                  <span className="text-sm text-slate-600">for {tenure} months</span>
-                </CardContent>
-              </Card>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="border-[1.5px] border-black bg-white p-6 flex flex-col justify-between h-full relative shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="space-y-1 z-10">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.15em]">Education Loan</span>
+                  <p className="text-4xl font-black text-blue-600 tracking-tighter mt-4">₹{loanAmount[0].toLocaleString('en-IN')}</p>
+                  <p className="text-sm font-bold text-black uppercase tracking-wider mt-1">for {tenure} months</p>
+                </div>
+              </div>
 
-              <Card className="bg-white border-slate-300">
-                <CardContent className="p-5 flex flex-col gap-1">
-                  <span className="text-xs text-slate-600 uppercase font-medium">Future Repayment</span>
-                  <span className="text-2xl font-bold text-slate-900 mt-1">₹{Math.round(emi).toLocaleString('en-IN')} <span className="text-sm font-normal text-slate-600">/mo</span></span>
-                  <div className="mt-auto pt-2 inline-flex items-center gap-1.5 text-xs font-medium text-blue-600"><InfoIcon className="w-3.5 h-3.5" /> Starts after {courseDuration} years</div>
-                </CardContent>
-              </Card>
+              <div className="border-[1.5px] border-black bg-slate-50 p-6 flex flex-col justify-between h-full shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="space-y-1 z-10">
+                  <span className="text-xs font-black text-black/40 uppercase tracking-[0.15em]">Future Repayment</span>
+                  <div className="flex items-baseline gap-1 mt-4">
+                    <p className="text-4xl font-black text-black tracking-tighter">₹{Math.round(emi).toLocaleString('en-IN')}</p>
+                    <span className="text-sm font-bold text-black/40 uppercase tracking-widest">/mo</span>
+                  </div>
+                  <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 border-[1.5px] border-black uppercase tracking-wider text-blue-600 w-fit">
+                    <InfoIcon className="w-4 h-4" /> STARTS AFTER {courseDuration || "0"} YEARS
+                  </div>
+                </div>
+              </div>
 
-              <Card className="bg-slate-50 border-slate-300 sm:col-span-2">
-                <CardContent className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 divide-x divide-slate-200">
-                  <div className="flex flex-col gap-1"><span className="text-xs text-slate-600">Applicant</span><span className="text-sm font-medium text-slate-900">Student</span></div>
-                  <div className="flex flex-col gap-1 pl-4"><span className="text-xs text-slate-600">Course</span><span className="text-sm font-medium text-slate-900">{courseName || '-'}</span></div>
-                  <div className="flex flex-col gap-1 pl-4"><span className="text-xs text-slate-600">University</span><span className="text-sm font-medium text-slate-900">{university || '-'}</span></div>
-                  <div className="flex flex-col gap-1 pl-4"><span className="text-xs text-slate-600">Co-applicant</span><span className="text-sm font-medium text-slate-900">{coApplicant === 'yes' ? 'Yes' : 'No'}</span></div>
-                </CardContent>
-              </Card>
+              <div className="sm:col-span-2 border-[1.5px] border-black bg-white p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x-[1.5px] divide-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <div className="flex flex-col gap-1 sm:pt-0 pt-0"><span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Applicant</span><span className="text-base font-black text-black uppercase tracking-tight truncate">Student</span></div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0"><span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Course</span><span className="text-base font-black text-black uppercase tracking-tight truncate">{courseName || '-'}</span></div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0"><span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">University</span><span className="text-base font-black text-black uppercase tracking-tight truncate">{university || '-'}</span></div>
+                <div className="flex flex-col gap-1 sm:pl-6 pt-4 sm:pt-0"><span className="text-xs font-black text-black/40 uppercase tracking-[0.1em]">Co-applicant</span><span className="text-base font-black text-black uppercase tracking-tight truncate">{coApplicant === 'yes' ? 'Yes' : 'No'}</span></div>
+              </div>
             </div>
 
-            <Card className="bg-blue-50 border-blue-300">
-              <CardContent className="p-4 flex items-center gap-4">
-                <InfoIcon className="w-6 h-6 text-blue-600 flex-shrink-0" />
+            <Card className="bg-white border-[1.5px] border-black rounded-none shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+              <CardContent className="p-5 flex items-start gap-4">
+                <CheckCircle2 className="w-7 h-7 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-semibold text-blue-600">Application Snapshot</h4>
-                  <p className="text-xs text-slate-600 mt-0.5">Approval depends heavily on your profile and co-applicant details. Ensure accurate documents are optionally provided.</p>
+                  <h4 className="text-sm font-black text-black uppercase tracking-widest">Application Snapshot</h4>
+                  <p className="text-xs font-bold text-slate-600 uppercase tracking-widest leading-relaxed mt-2">APPROVAL DEPENDS HEAVILY ON YOUR PROFILE AND CO-APPLICANT DETAILS. ENSURE ACCURATE DOCUMENTS ARE OPTIONALLY PROVIDED.</p>
                 </div>
               </CardContent>
             </Card>
@@ -2118,10 +2129,10 @@ export function ApplyLoanPage() {
               </Card>
             )}
 
-            <div className="flex justify-between items-center pt-6 border-t border-slate-200">
-              <Button variant="ghost" onClick={prevStep} className="text-slate-700 hover:text-slate-900 hover:bg-slate-100" disabled={isSubmitting}>Edit Details</Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white px-8">
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+            <div className="flex justify-between items-center pt-8 border-t-[1.5px] border-black">
+              <Button variant="ghost" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3" disabled={isSubmitting}>EDIT DETAILS</Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white hover:bg-blue-700 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-8 py-3 transition-all">
+                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT APPLICATION →'}
               </Button>
             </div>
           </div>

@@ -90,7 +90,7 @@ export function AdminDashboard() {
   ] : [];
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="h-screen flex flex-col bg-white">
       <style>{`
         html {
           scrollbar-gutter: stable;
@@ -121,26 +121,26 @@ export function AdminDashboard() {
         }
       `}</style>
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b-[1.5px] border-black flex-shrink-0 z-10 relative">
         <div className="w-full px-6 sm:px-8 md:px-10 lg:px-12">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-bold text-lg sm:text-xl text-slate-900">CREDIT - Admin</span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span></span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => navigate("/admin")} className="text-slate-900 font-medium hover:text-blue-600 transition-colors">Dashboard</button>
-              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-600 hover:text-slate-900 transition-colors">Users</button> */}
-              <button onClick={() => navigate("/admin/loans")} className="text-slate-600 hover:text-slate-900 transition-colors">Loans</button>
-              <button onClick={() => navigate("/admin/reports")} className="text-slate-600 hover:text-slate-900 transition-colors">Audit Log</button>
-              <button onClick={() => navigate("/admin/models")} className="text-slate-600 hover:text-slate-900 transition-colors">Models</button>
+            <nav className="hidden md:flex items-center gap-8 mt-1">
+              <button onClick={() => navigate("/admin")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Dashboard</button>
+              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Users</button> */}
+              <button onClick={() => navigate("/admin/loans")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Loans</button>
+              <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Audit Log</button>
+              <button onClick={() => navigate("/admin/models")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Models</button>
             </nav>
             <Button
               onClick={() => {
                 logout();
               }}
               variant="outline"
-              className="border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+              className="border-[1.5px] border-black text-black bg-white hover:bg-black hover:text-white rounded-none font-black text-xs uppercase tracking-[0.15em] transition-all hover:scale-[1.03]"
             >
               Logout
             </Button>
@@ -149,35 +149,45 @@ export function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="w-full px-6 sm:px-8 md:px-12 lg:px-16 py-10 flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-10">
-            <div className="flex items-end justify-between mb-3">
+      <main className="w-full px-6 sm:px-8 md:px-12 lg:px-16 py-12 flex-1 overflow-y-auto bg-[#fafafa]">
+        <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-14">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-4">
               <div>
-                <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-                {adminLoanType && <p className="text-blue-600 font-medium text-sm mt-2">Managing: {loanTypeLabels[adminLoanType] || adminLoanType}</p>}
+                <h1 className="text-5xl md:text-6xl font-black text-black tracking-tighter uppercase">DASHBOARD</h1>
+                {adminLoanType && (
+                  <div className="mt-4 inline-flex items-center gap-2 border-[1.5px] border-blue-600 bg-blue-50/50 px-4 py-1.5">
+                    <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Managing:</span>
+                    <span className="text-sm font-black text-black uppercase tracking-wider">{loanTypeLabels[adminLoanType] || adminLoanType}</span>
+                  </div>
+                )}
               </div>
-              {loading && <p className="text-slate-500 text-sm">Updating...</p>}
+              {loading && <p className="text-black font-bold text-xs uppercase tracking-widest animate-pulse border-[1.5px] border-black px-3 py-1 bg-white">Updating...</p>}
             </div>
-            <p className="text-slate-600 text-sm leading-relaxed">Real-time overview of your loan application portfolio</p>
           </div>
 
           {/* Key Metrics Section */}
-          <div className="mb-12">
-            <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-5 pl-1">Application Status</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="mb-16">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-base md:text-lg font-black text-black uppercase tracking-[0.2em]">Application Status</h2>
+              <div className="h-[1.5px] flex-1 bg-black/10"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {keyMetrics.map((stat, index) => (
                 <div
                   key={index}
-                  className="group relative bg-white border border-slate-200 rounded-lg p-6 hover:border-slate-300 hover:shadow-sm transition-all duration-300 cursor-pointer"
+                  className="group relative bg-white border border-slate-200 p-6 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.03] hover:border-blue-600 hover:shadow-[0_12px_24px_-8px_rgba(37,99,235,0.25)] cursor-pointer overflow-hidden"
                 >
-                  <div className="flex items-start justify-between">
+                  {/* Subtle structural accent */}
+                  <div className="absolute top-0 right-0 w-8 h-8 border-l border-b border-slate-100 transition-colors group-hover:border-blue-600/30"></div>
+                  
+                  <div className="flex items-start justify-between relative z-10">
                     <div className="flex-1">
-                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">{stat.title}</p>
-                      <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                      <p className="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-[0.15em] mb-3">{stat.title}</p>
+                      <p className="text-4xl md:text-5xl font-black text-black tracking-tighter group-hover:text-blue-600 transition-colors duration-300">{stat.value}</p>
                     </div>
-                    <div className={`${stat.bgColor} p-2.5 rounded-md`}>
-                      <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+                    <div className="mt-1 flex-shrink-0">
+                      <stat.icon className="w-6 h-6 text-black/40 group-hover:text-blue-600 transition-colors duration-300" strokeWidth={2.5} />
                     </div>
                   </div>
                 </div>
@@ -186,21 +196,27 @@ export function AdminDashboard() {
           </div>
 
           {/* Financial Metrics Section */}
-          <div>
-            <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-5 pl-1">Financial Overview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="mb-12">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-base md:text-lg font-black text-black uppercase tracking-[0.2em]">Financial Overview</h2>
+              <div className="h-[1.5px] flex-1 bg-black/10"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {financialMetrics.map((stat, index) => (
                 <div
                   key={index}
-                  className="group relative bg-white border border-slate-200 rounded-lg p-6 hover:border-slate-300 hover:shadow-sm transition-all duration-300 cursor-pointer"
+                  className="group relative bg-white border border-slate-200 p-8 sm:p-10 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.03] hover:border-blue-600 hover:shadow-[0_12px_30px_-5px_rgba(37,99,235,0.25)] cursor-pointer overflow-hidden"
                 >
-                  <div className="flex items-start justify-between">
+                  {/* Subtle brutalist grid background pattern */}
+                  <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(0,0,0,1)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(0,0,0,1)_1.5px,transparent_1.5px)] bg-[size:24px_24px] pointer-events-none group-hover:opacity-[0.08] transition-opacity duration-500"></div>
+                  
+                  <div className="flex items-start justify-between relative z-10">
                     <div className="flex-1">
-                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">{stat.title}</p>
-                      <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                      <p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-[0.2em] mb-4">{stat.title}</p>
+                      <p className="text-5xl md:text-7xl font-black text-black tracking-tighter group-hover:text-blue-600 transition-colors duration-300">{stat.value}</p>
                     </div>
-                    <div className={`${stat.bgColor} p-3 rounded-md`}>
-                      <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
+                    <div className="mt-2 flex-shrink-0 bg-blue-50 p-4 rounded-sm border border-blue-200 group-hover:border-blue-600 group-hover:bg-blue-100 transition-all duration-300">
+                      <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-black group-hover:text-blue-600 transition-colors duration-300" strokeWidth={2.5} />
                     </div>
                   </div>
                 </div>

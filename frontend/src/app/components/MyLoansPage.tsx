@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
-  CreditCard, Calendar, AlertCircle, CheckCircle2, 
-  Hourglass, Ban, Info, DollarSign, X, Shield
+  AlertCircle, CheckCircle2, 
+  Ban, Info, X, ChevronRight
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router";
@@ -39,17 +39,17 @@ export function MyLoansPage() {
         setLoading(true);
         setError(null);
 
-        console.log('🔄 Fetching loans from backend...');
+        console.log('Fetching loans from backend...');
         const response = await apiClient.get(`${API_BASE_URL}/loan/my-loans`);
 
-        console.log('📊 Response status:', response.status, response.statusText);
+        console.log('Response status:', response.status, response.statusText);
 
         if (!response.ok) {
           const errorBody = await response.text();
-          console.error('❌ Backend error response:', errorBody);
+          console.error('Backend error response:', errorBody);
           
           if (response.status === 500) {
-            console.error('💥 Server error (500)');
+            console.error('Server error (500)');
             throw new Error('Backend server error');
           }
           
@@ -57,18 +57,18 @@ export function MyLoansPage() {
         }
 
         const data = await response.json();
-        console.log('✅ Response data:', JSON.stringify(data, null, 2));
+        console.log('Response data:', JSON.stringify(data, null, 2));
         
         if (!data.loans) {
-          console.warn('⚠️ No loans array in response');
+          console.warn('No loans array in response');
         }
 
         // Map backend loans to frontend format
         const loansArray = Array.isArray(data.loans) ? data.loans : [];
-        console.log(`📈 Total loans to display: ${loansArray.length}`);
+        console.log(`Total loans to display: ${loansArray.length}`);
         
         const formattedLoans = loansArray.map((loan: any) => {
-          console.log(`  📝 Processing loan: ${loan._id} - Status: ${loan.status}`);
+          console.log(`Processing loan: ${loan._id} - Status: ${loan.status}`);
           return {
             id: loan._id,
             loanId: loan._id,
@@ -88,10 +88,10 @@ export function MyLoansPage() {
           };
         });
 
-        console.log(`✅ Successfully formatted ${formattedLoans.length} loans`);
+        console.log(`Successfully formatted ${formattedLoans.length} loans`);
         setLoans(formattedLoans);
       } catch (err) {
-        console.error('❌ Error fetching loans:', err);
+        console.error('Error fetching loans:', err);
         const errorMsg = err instanceof Error ? err.message : 'Failed to fetch loans';
         setError(errorMsg);
         setLoans([]);
@@ -100,21 +100,21 @@ export function MyLoansPage() {
       }
     };
 
-    console.log('🚀 MyLoansPage useEffect triggered');
+    console.log('MyLoansPage useEffect triggered');
     
     // Fetch immediately on mount
     fetchLoans();
 
     // Set up 5-second refresh interval
     const interval = setInterval(() => {
-      console.log('⏱️ 5-second auto-refresh triggered');
+      console.log('5-second auto-refresh triggered');
       fetchLoans();
     }, 5000);
 
     // Listen for visibility changes to refresh when tab becomes visible
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('👁️ Page became visible, refreshing loans...');
+        console.log('Page became visible, refreshing loans...');
         fetchLoans();
       }
     };
@@ -161,28 +161,28 @@ export function MyLoansPage() {
   // Fetch individual loan by ID
   const fetchLoanById = async (loanId: string) => {
     try {
-      console.log(`🔍 Fetching loan details for ID: ${loanId}`);
+      console.log(`Fetching loan details for ID: ${loanId}`);
 
       const response = await apiClient.get(`${API_BASE_URL}/loan/my-loans/${loanId}`);
 
       if (!response.ok) {
-        console.error(`❌ Failed to fetch loan (${response.status})`);
+        console.error(`Failed to fetch loan (${response.status})`);
         return null;
       }
 
       const data = await response.json();
-      console.log(`✅ Loan details fetched:`, data.loan);
+      console.log(`Loan details fetched:`, data.loan);
 
       return data.loan;
     } catch (err) {
-      console.error('❌ Error fetching loan details:', err);
+      console.error('Error fetching loan details:', err);
       return null;
     }
   };
 
   // Handle loan card click - fetch fresh details by ID
   const handleLoanClick = async (loan: any) => {
-    console.log(`👆 Loan card clicked: ${loan.id}`);
+    console.log(`Loan card clicked: ${loan.id}`);
     
     // First show the card data immediately for responsiveness
     setSelectedLoan(loan);
@@ -209,7 +209,7 @@ export function MyLoansPage() {
       };
       // Update with fresh data
       setSelectedLoan(formattedLoan);
-      console.log(`✅ Updated selected loan with fresh data`);
+      console.log(`Updated selected loan with fresh data`);
     }
   };
 
@@ -217,73 +217,73 @@ export function MyLoansPage() {
     ? loans 
     : loans.filter(loan => loan.status === filter);
 
-  const getStatusColor = (status: string) => {
+    const getStatusColor = (status: string) => {
     switch (status) {
-      case "Approved": return "bg-green-100 text-green-700 border-green-300";
-      case "Rejected": return "bg-red-100 text-red-700 border-red-300";
-      case "Ongoing": return "bg-blue-100 text-blue-700 border-blue-300";
-      case "Completed": return "bg-slate-100 text-slate-700 border-slate-300";
-      default: return "bg-amber-100 text-amber-700 border-amber-300";
+      case "Approved": return "bg-green-400 text-black";
+      case "Rejected": return "bg-red-400 text-black";
+      case "Ongoing": return "bg-blue-400 text-black";
+      case "Completed": return "bg-white text-black";
+      default: return "bg-yellow-400 text-black";
     }
   };
 
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case "Low": return "text-green-600";
-      case "Medium": return "text-amber-600";
-      case "High": return "text-red-600";
-      default: return "text-slate-600";
-    }
-  };
+
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
+    <div className="apply-loan-brutal min-h-screen bg-white flex flex-col text-black font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white shadow-sm flex-shrink-0 sticky top-0 z-10">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("https://github.com")}>
-              <img src="/images/download.png" alt="Barclays Logo" className="w-6 h-6 object-contain" />
-              <span className="font-serif font-bold text-xl text-slate-900 tracking-wide uppercase">CREDIT</span>
+      <header className="border-b-[1.5px] border-black bg-white flex-shrink-0 sticky top-0 z-20">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => navigate("/")}>
+              <span className="text-xl md:text-2xl font-black tracking-tighter uppercase relative">
+                CREDIT
+                <span className="absolute -right-2.5 bottom-1.5 w-1.5 h-1.5 md:w-2 mb:h-2 bg-blue-600"></span>
+              </span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => navigate("/apply-loan")} className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium">Apply For Loan</button>
-              <button className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-[2px] text-sm">My Loans</button>
+            <nav className="hidden md:flex items-center gap-10">
+              <button onClick={() => navigate("/apply-loan")} className="text-black/60 hover:text-black hover:opacity-100 transition-opacity text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Apply For Loan</button>
+              <button className="text-blue-600 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] border-b-[2px] border-blue-600 pb-[2px]">My Loans</button>
+              <button onClick={() => navigate("/profile")} className="text-black/60 hover:text-black hover:opacity-100 transition-opacity text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Profile</button>
             </nav>
             <Button
-              onClick={() => {
-                logout();
-              }}
+              onClick={() => logout()}
               variant="outline"
-              className="border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 bg-white text-xs h-8 px-4 rounded-md"
+              className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-[10px] md:text-xs px-6 py-2 uppercase tracking-[0.2em] transition-all"
             >
-              Sign Out
+              Sign Out &rarr;
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1">
+      <main className="flex-1 max-w-[85%] w-full mx-auto py-12">
         
         {/* Sub Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white tracking-wide">Loan History Tracking</h1>
-          <Button onClick={() => navigate("/apply-loan")} className="bg-[#00AEEF] hover:bg-[#009bcf] text-white font-bold rounded-md px-5 shadow-[0_0_15px_rgba(0,174,239,0.3)] text-xs h-9">
-            Apply For Loan
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div>
+            <h1 className="text-3xl md:text-5xl font-black text-black tracking-tighter uppercase leading-none">
+              LOAN<br />
+              <span className="text-blue-600">HISTORY.</span>
+            </h1>
+          </div>
+          <Button onClick={() => navigate("/apply-loan")} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-8 h-12 transition-all group shrink-0">
+            APPLY FOR LOAN <span className="ml-2 group-hover:translate-x-1 transition-transform">&rarr;</span>
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+        {/* Filters */}
+        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
           {["All", "Approved", "Ongoing", "Completed", "Rejected"].map((btn) => (
             <button
               key={btn}
               onClick={() => setFilter(btn)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all whitespace-nowrap ${
-                filter === btn 
-                  ? "bg-[#00AEEF] text-white border-[#00AEEF] shadow-[0_0_10px_rgba(0,174,239,0.3)]" 
-                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+              className={`px-6 py-2.5 text-xs font-black tracking-[0.15em] uppercase border-[1.5px] transition-all whitespace-nowrap 
+                ${filter === btn 
+                  ? "bg-blue-600 text-white border-blue-600 shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-y-0.5" 
+                  : "bg-white border-black text-black hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
               }`}
             >
               {btn}
@@ -291,13 +291,7 @@ export function MyLoansPage() {
           ))}
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
-            <p className="text-slate-600 text-sm">Loading your loans...</p>
-          </div>
-        )}
+        {/* Loading State removed per user request */}
 
         {/* Error State */}
         {error && !loading && (
@@ -311,94 +305,81 @@ export function MyLoansPage() {
         )}
 
         {/* Empty State */}
-        {!loading && !error && filteredLoans.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center border border-slate-300">
-              <Hourglass className="w-8 h-8 text-slate-500" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900">No loans found</h3>
-            <p className="text-slate-600 text-sm max-w-sm">You haven't applied for any {filter !== 'All' ? filter.toLowerCase() : ''} loans yet.</p>
-            <Button onClick={() => navigate("/apply-loan")} className="bg-blue-600 hover:bg-blue-700 text-white mt-2">Apply Now</Button>
+        {!error && filteredLoans.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 border-[1.5px] border-black p-12">
+            <h3 className="text-2xl font-black text-black tracking-tighter uppercase">NO LOANS FOUND</h3>
+            <p className="text-xs font-black tracking-[0.2em] text-black/50 uppercase max-w-sm">You haven't applied for any {filter !== 'All' ? filter.toLowerCase() : ''} loans yet.</p>
+            <Button onClick={() => navigate("/apply-loan")} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.2em] px-8 h-12 mt-4 transition-all">APPLY NOW &rarr;</Button>
           </div>
         )}
 
         {/* Loans Grid */}
-        {!loading && !error && filteredLoans.length > 0 && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredLoans.map((loan) => (
-            <div 
-              key={loan.id} 
-              onClick={() => handleLoanClick(loan)}
-              className="bg-white border border-slate-300 rounded-2xl p-6 hover:shadow-md hover:border-blue-600 cursor-pointer transition-all duration-300 shadow-sm group flex flex-col justify-between"
-            >
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs text-slate-600 tracking-wider">ID: {loan.id}</span>
-                    <h3 className="text-lg font-bold text-slate-900 mt-1">{loan.category} Loan</h3>
+        {!error && filteredLoans.length > 0 && (
+        <div className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {filteredLoans.map((loan) => (
+              <div 
+                key={loan.id} 
+                onClick={() => handleLoanClick(loan)}
+                className="text-left group p-8 md:p-10 flex flex-col gap-5 bg-white border-[1.5px] border-black hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all duration-300 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif text-blue-600 text-lg">₹</span>
+                    <h3 className="font-black text-base md:text-lg uppercase tracking-tight text-black transition-colors duration-300">
+                      {loan.category} LOAN
+                    </h3>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusColor(loan.status)}`}>
-                    {loan.status}
-                  </span>
                 </div>
+                
+                <p className="text-[10px] md:text-xs text-black/40 font-bold tracking-widest uppercase transition-colors duration-300 leading-relaxed">
+                  ₹{loan.amount.toLocaleString()} • STATUS: <span className={loan.status === 'Approved' ? 'text-green-600 font-black' : loan.status === 'Rejected' ? 'text-red-600 font-black' : loan.status === 'Ongoing' ? 'text-blue-600 font-black' : 'text-black/60 font-black'}>{loan.status}</span>
+                </p>
 
-                <div className="py-2">
-                  <span className="text-xs text-slate-600 block">Loan Amount</span>
-                  <span className="text-2xl font-black text-slate-900 tracking-tight">₹{loan.amount.toLocaleString()}</span>
+                <div className="mt-auto pt-2 flex items-center text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-[0.15em] group-hover:tracking-[0.2em] transition-all duration-300">
+                  VIEW DETAILS <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </div>
-
-              <div className="pt-4 mt-4 border-t border-slate-200 flex justify-between items-center text-xs">
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {loan.applicationDate}
-                </div>
-                <div>
-                  <span className="text-slate-600 mr-1">Risk:</span>
-                  <span className={`font-bold ${getRiskColor(loan.riskLevel)}`}>{loan.riskLevel}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         )}
 
         {/* Details Modal / Sidebar overlay */}
         {selectedLoan && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end animate-in fade-in duration-200">
-            <div className="w-full max-w-lg bg-white h-full border-l border-slate-200 shadow-2xl p-6 md:p-8 overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="w-full max-w-lg bg-white h-full border-l-[3px] border-black shadow-[-12px_0_0_0_rgba(0,0,0,0.1)] p-6 md:p-10 overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300">
               
               {/* Top Close */}
-              <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+              <div className="flex justify-between items-center pb-6 border-b-[1.5px] border-black">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-blue-600 tracking-wide uppercase">Loan Details</span>
+                  <span className="text-xs font-black text-black tracking-[0.2em] uppercase">LOAN DETAILS</span>
                 </div>
-                <button onClick={() => setSelectedLoan(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                  <X className="w-5 h-5 text-slate-600 hover:text-slate-900" />
+                <button onClick={() => setSelectedLoan(null)} className="p-2 hover:bg-black hover:text-white border-[1.5px] border-transparent hover:border-black rounded-none transition-all">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="flex-1 space-y-6 pt-6">
                 
                 {/* ID & Status */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-start pt-2">
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-900">{selectedLoan.category}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Application ID: {selectedLoan.id}</p>
+                    <h3 className="text-3xl font-black text-black tracking-tighter uppercase mb-1">{selectedLoan.category}</h3>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(selectedLoan.status)}`}>
+                  <span className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider border-[1.5px] border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] ${getStatusColor(selectedLoan.status)}`}>
                     {selectedLoan.status}
                   </span>
                 </div>
 
                 {/* TIMELINE TIMELINE */}
                 {selectedLoan.status !== "Rejected" && (
-                  <div className="border border-slate-200 bg-gradient-to-br from-slate-50 to-white rounded-xl p-5 space-y-4">
-                    <h4 className="text-xs font-bold text-slate-700 uppercase tracking-widest">Stage Timeline</h4>
+                  <div className="border-[1.5px] border-black bg-white rounded-none p-6 space-y-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                    <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em]">STAGE TIMELINE</h4>
                     <div className="relative pt-2">
-                      <div className="absolute top-4 left-0 right-0 h-1 bg-slate-400 rounded-full" />
+                      <div className="absolute top-4 left-0 right-0 h-[3px] bg-black/10" />
                       <div 
-                        className="absolute top-4 left-0 h-1 bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)] rounded-full transition-all duration-1000" 
+                        className="absolute top-4 left-0 h-[3px] bg-blue-600 transition-all duration-1000" 
                         style={{ width: `${(getStatusStageIndex(selectedLoan.status) / (TIMELINE_STAGES.length - 1)) * 100}%` }}
                       />
                       <div className="flex justify-between relative z-10">
@@ -409,12 +390,12 @@ export function MyLoansPage() {
 
                           return (
                             <div key={idx} className="flex flex-col items-center">
-                              <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all shadow-sm ${
+                              <div className={`w-4 h-4 rounded-none flex items-center justify-center transition-all border-[1.5px] ${
                                 isCompleted 
-                                  ? "bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]" 
-                                  : "bg-white border-2 border-slate-300"
-                              } ${isCurrent ? "ring-4 ring-blue-200" : ""}`} />
-                              <span className={`text-[10px] mt-2 font-semibold ${isCurrent ? "text-blue-600" : isCompleted ? "text-slate-700" : "text-slate-400"}`}>
+                                  ? "bg-blue-600 border-blue-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)]" 
+                                  : "bg-white border-black/20"
+                              } ${isCurrent ? "border-black bg-blue-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)] scale-125" : ""}`} />
+                              <span className={`text-[8px] mt-3 font-black tracking-wider uppercase ${isCurrent ? "text-blue-600" : isCompleted ? "text-black" : "text-black/30"}`}>
                                 {stage}
                               </span>
                             </div>
@@ -430,55 +411,55 @@ export function MyLoansPage() {
                 {/* 1. ONGOING / APPROVED */}
                 {(selectedLoan.status === "Ongoing" || selectedLoan.status === "Approved") && (
                   <>
-                    <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-xl p-5 space-y-4">
+                    <div className="bg-white border-[1.5px] border-black rounded-none p-6 space-y-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                       {selectedLoan.status === "Ongoing" && (
                         <div>
-                          <p className="text-xs text-slate-600 font-medium">Repayment Progress</p>
-                          <div className="flex justify-between items-end mt-2">
-                            <span className="text-lg font-bold text-slate-900">₹{selectedLoan.paidAmount.toLocaleString()} <span className="text-xs font-normal text-slate-500">paid</span></span>
-                            <span className="text-sm font-bold text-blue-600">{Math.round((selectedLoan.paidAmount / selectedLoan.totalPayable) * 100)}%</span>
+                          <p className="text-[10px] font-black tracking-[0.2em] text-black/50 uppercase">REPAYMENT PROGRESS</p>
+                          <div className="flex justify-between items-end mt-2 mb-3">
+                            <span className="text-2xl font-black text-black tracking-tighter">₹{selectedLoan.paidAmount.toLocaleString()} <span className="text-xs font-black text-black/40 tracking-wider">PAID</span></span>
+                            <span className="text-sm font-black text-blue-600">{Math.round((selectedLoan.paidAmount / selectedLoan.totalPayable) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-slate-200 rounded-full mt-2 overflow-hidden border border-slate-300">
+                          <div className="w-full h-3 bg-black/5 border-[1.5px] border-black overflow-hidden relative">
                             <div 
-                              className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-700" 
+                              className="h-full bg-blue-600 transition-all duration-700 absolute left-0 top-0 border-r-[1.5px] border-black" 
                               style={{ width: `${(selectedLoan.paidAmount / selectedLoan.totalPayable) * 100}%` }}
                             />
                           </div>
                         </div>
                       )}
 
-                      <div className="grid grid-cols-2 gap-4 text-sm divide-x divide-blue-300">
+                      <div className="grid grid-cols-2 gap-6 pt-2">
                         <div>
-                          <p className="text-xs text-slate-600 font-medium">Loan Amount</p>
-                          <p className="text-lg font-bold text-slate-900 mt-1">₹{selectedLoan.amount.toLocaleString()}</p>
+                          <p className="text-[10px] font-black tracking-[0.2em] text-black/50 uppercase">LOAN AMOUNT</p>
+                          <p className="text-xl md:text-2xl font-black text-black tracking-tighter mt-1">₹{selectedLoan.amount.toLocaleString()}</p>
                         </div>
-                        <div className="pl-4">
-                          <p className="text-xs text-slate-600 font-medium">Monthly EMI</p>
-                          <p className="text-lg font-bold text-blue-600 mt-1">₹{selectedLoan.emi.toLocaleString()}</p>
+                        <div className="pl-6 border-l-[1.5px] border-black/10">
+                          <p className="text-[10px] font-black tracking-[0.2em] text-black/50 uppercase">MONTHLY EMI</p>
+                          <p className="text-xl md:text-2xl font-black text-blue-600 tracking-tighter mt-1">₹{selectedLoan.emi.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-3 bg-white border border-slate-200 rounded-xl p-5">
-                      <div className="flex justify-between text-sm"><span className="text-slate-600 font-medium">Start Date</span><span className="text-slate-900 font-semibold">{selectedLoan.startDate || "-"}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-600 font-medium">Tenure</span><span className="text-slate-900 font-semibold">{selectedLoan.tenure || "N/A"}</span></div>
-                      <div className="flex justify-between text-sm border-t border-slate-200 pt-3"><span className="text-slate-600 font-medium">Interest Rate</span><span className="text-slate-900 font-semibold">{selectedLoan.interestRate}% p.a.</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-600 font-medium">Total Payable</span><span className="text-slate-900 font-semibold">₹{selectedLoan.totalPayable.toLocaleString()}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-600 font-medium">Remaining Balance</span><span className="text-slate-900 font-semibold">₹{selectedLoan.remainingAmount.toLocaleString()}</span></div>
-                      <div className="flex justify-between text-sm border-t border-slate-200 pt-3"><span className="text-slate-600 font-medium">Next Due Date</span><span className="text-green-600 font-bold">{selectedLoan.nextDueDate}</span></div>
-                      {selectedLoan.missedPayments > 0 && <div className="flex justify-between text-sm"><span className="text-slate-600 font-medium">Missed Payments</span><span className="text-red-600 font-bold">{selectedLoan.missedPayments} times</span></div>}
+                    <div className="space-y-4 bg-white border-[1.5px] border-black rounded-none p-6 text-xs font-black tracking-wide uppercase">
+                      <div className="flex justify-between items-center"><span className="text-black/50">START DATE</span><span className="text-black">{selectedLoan.startDate || "-"}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-black/50">TENURE</span><span className="text-black">{selectedLoan.tenure || "N/A"}</span></div>
+                      <div className="flex justify-between items-center border-t-[1.5px] border-black/10 pt-4"><span className="text-black/50">INTEREST RATE</span><span className="text-black">{selectedLoan.interestRate}% P.A.</span></div>
+                      <div className="flex justify-between items-center"><span className="text-black/50">TOTAL PAYABLE</span><span className="text-black">₹{selectedLoan.totalPayable.toLocaleString()}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-black/50">REMAINING BALANCE</span><span className="text-black">₹{selectedLoan.remainingAmount.toLocaleString()}</span></div>
+                      <div className="flex justify-between items-center border-t-[1.5px] border-black/10 pt-4"><span className="text-black/50">NEXT DUE DATE</span><span className="text-green-600">{selectedLoan.nextDueDate}</span></div>
+                      {selectedLoan.missedPayments > 0 && <div className="flex justify-between items-center"><span className="text-black/50">MISSED PAYMENTS</span><span className="text-red-600">{selectedLoan.missedPayments} TIMES</span></div>}
                     </div>
 
                     {selectedLoan.terms && (
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                        <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2"><Info className="w-4 h-4 text-blue-600" /> Terms & Conditions</h5>
-                        <p className="text-xs text-slate-600 leading-relaxed">{selectedLoan.terms}</p>
+                      <div className="bg-white border-[1.5px] border-black/20 rounded-none p-6">
+                        <h5 className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2"><Info className="w-4 h-4 text-blue-600" /> TERMS & CONDITIONS</h5>
+                        <p className="text-xs text-black/60 font-medium leading-relaxed uppercase">{selectedLoan.terms}</p>
                       </div>
                     )}
 
                     {selectedLoan.status === "Ongoing" && (
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-lg shadow-[0_4px_12px_rgba(37,99,235,0.3)] transition-all">
-                        Pay Next EMI
+                      <Button className="w-full bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.2em] h-14 transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0_0_rgba(37,99,235,1)]">
+                        PAY NEXT EMI &rarr;
                       </Button>
                     )}
                   </>
@@ -534,7 +515,7 @@ export function MyLoansPage() {
           </div>
         )}
 
-      </div>
+      </main>
     </div>
   );
 }

@@ -17,7 +17,7 @@ async function testFlow() {
     // Connect to DB
     console.log('1️⃣ Connecting to MongoDB...');
     await mongoose.connect(`${MONGO_URI}/${DB_NAME}`, { serverSelectionTimeoutMS: 5000 });
-    console.log('✅ Connected\n');
+    console.log(' Connected\n');
 
     // Create test user
     console.log('2️⃣ Creating test user...');
@@ -31,15 +31,15 @@ async function testFlow() {
         role: 'user',
         isOnBoarded: true
       });
-      console.log('✅ User created:', testUser._id);
+      console.log(' User created:', testUser._id);
     } else {
-      console.log('✅ User exists:', testUser._id);
+      console.log(' User exists:', testUser._id);
     }
 
     // Generate token
     console.log('\n3️⃣ Generating JWT token...');
     const token = jwt.sign({ userId: testUser._id, role: 'user' }, JWT_SECRET, { expiresIn: '24h' });
-    console.log('✅ Token generated\n');
+    console.log(' Token generated\n');
 
     // Submit loan via API
     console.log('4️⃣ Submitting loan via API...');
@@ -58,7 +58,7 @@ async function testFlow() {
     });
 
     const loanId = submitRes.data.data?.loanId;
-    console.log('✅ Loan submitted');
+    console.log(' Loan submitted');
     console.log('   Loan ID:', loanId);
     console.log('   Status:', submitRes.data.data?.status);
     console.log('   HTTP:', submitRes.status);
@@ -69,39 +69,39 @@ async function testFlow() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    console.log('✅ Loans fetched');
+    console.log(' Loans fetched');
     console.log('   HTTP:', fetchRes.status);
     console.log('   Total loans:', fetchRes.data.loans?.length || 0);
 
     // Check if our loan is there
     const foundLoan = fetchRes.data.loans?.find((l) => l._id === loanId);
     if (foundLoan) {
-      console.log('   ✅ OUR JUST-SUBMITTED LOAN FOUND!');
+      console.log('    OUR JUST-SUBMITTED LOAN FOUND!');
       console.log('      Amount:', foundLoan.requestedAmount);
       console.log('      Status:', foundLoan.status);
       console.log('      UserId:', foundLoan.userId);
     } else {
-      console.log('   ❌ LOAN NOT FOUND IN RESPONSE!');
+      console.log('   LOAN NOT FOUND IN RESPONSE!');
     }
 
     // Verify in database
     console.log('\n6️⃣ Verifying in MongoDB...');
     const dbLoan = await LoanApplication.findById(loanId).populate('userId');
     if (dbLoan) {
-      console.log('✅ Loan exists in DB');
+      console.log(' Loan exists in DB');
       console.log('   _id:', dbLoan._id);
       console.log('   userId:', dbLoan.userId._id);
       console.log('   Amount:', dbLoan.requestedAmount);
       console.log('   Status:', dbLoan.status);
     } else {
-      console.log('❌ Loan not in database!');
+      console.log('Loan not in database!');
     }
 
-    console.log('\n✅ TEST COMPLETE\n');
+    console.log('\n TEST COMPLETE\n');
     process.exit(0);
 
   } catch (error) {
-    console.error('\n❌ TEST FAILED');
+    console.error('\nTEST FAILED');
     if (error.response) {
       console.error('Status:', error.response.status);
       console.error('Data:', JSON.stringify(error.response.data, null, 2));

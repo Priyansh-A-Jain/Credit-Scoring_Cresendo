@@ -30,11 +30,11 @@ export function AdminLoanApplications() {
 
   useEffect(() => {
     fetchLoans();
-    
+
     const interval = setInterval(() => {
       fetchLoans();
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -42,10 +42,10 @@ export function AdminLoanApplications() {
     try {
       console.log('🔄 [Admin] Fetching loans from backend...');
       const response = await apiClient.get(`${API_BASE_URL}/admin/my-loans`);
-      
+
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ [Admin] Fetched ${data.loans?.length || 0} loans`);
+        console.log(` [Admin] Fetched ${data.loans?.length || 0} loans`);
         const loansData = (data.loans || data.data?.loans || []).map((loan: any, index: number) => {
           // Extract user details from populated userId field
           const userDetails = loan.userId || {};
@@ -53,7 +53,7 @@ export function AdminLoanApplications() {
           const userPhone = userDetails.phone || 'N/A';
           const userEmail = userDetails.email || 'N/A';
           const creditScore = userDetails.creditScore || 'N/A';
-          
+
           return {
             id: loan._id,
             name: userName,
@@ -93,7 +93,7 @@ export function AdminLoanApplications() {
         console.log(`📊 [Admin] Formatted ${loansData.length} loans`);
       }
     } catch (error) {
-      console.error('❌ [Admin] Error fetching loans:', error);
+      console.error('[Admin] Error fetching loans:', error);
       setLoans([]);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export function AdminLoanApplications() {
   // Fetch individual loan by ID (fresh data)
   const fetchLoanById = async (loanId: string) => {
     try {
-      console.log(`🔍 [Admin] Fetching loan details for ID: ${loanId}`);
+      console.log(` [Admin] Fetching loan details for ID: ${loanId}`);
 
       // Prefer admin-scoped endpoint; fallback to user route for backward compatibility.
       let response = await apiClient.get(`${API_BASE_URL}/admin/my-loans/${loanId}`);
@@ -114,16 +114,16 @@ export function AdminLoanApplications() {
       }
 
       if (!response.ok) {
-        console.error(`❌ [Admin] Failed to fetch loan (${response.status})`);
+        console.error(`[Admin] Failed to fetch loan (${response.status})`);
         return null;
       }
 
       const data = await response.json();
-      console.log(`✅ [Admin] Loan details fetched`, data.loan);
+      console.log(` [Admin] Loan details fetched`, data.loan);
 
       return data.loan;
     } catch (err) {
-      console.error('❌ [Admin] Error fetching loan details:', err);
+      console.error('[Admin] Error fetching loan details:', err);
       return null;
     }
   };
@@ -148,12 +148,12 @@ export function AdminLoanApplications() {
   // Handle loan row click - fetch fresh details by ID
   const handleLoanClick = async (index: number, loanId: string) => {
     console.log(`👆 [Admin] Loan row clicked: ${loanId} (index: ${index})`);
-    
+
     // Immediately select the loan for UI responsiveness
     setSelectedLoan(index);
     setExplainability(null);
     void fetchExplainability(loanId);
-    
+
     // Fetch fresh details by ID in background
     const freshLoan = await fetchLoanById(loanId);
     if (freshLoan) {
@@ -193,12 +193,12 @@ export function AdminLoanApplications() {
           "Decision Reason": freshLoan.features?.decisionReason || 'N/A'
         }
       };
-      
+
       // Update loan in list
       const updatedLoans = [...loans];
       updatedLoans[index] = updatedLoan;
       setLoans(updatedLoans);
-      console.log(`✅ [Admin] Updated loan with fresh data`);
+      console.log(` [Admin] Updated loan with fresh data`);
     }
   };
 
@@ -208,7 +208,7 @@ export function AdminLoanApplications() {
       app.category.toLowerCase().includes(searchTerm.toLowerCase())
     )
     : loans.filter(app => {
-      const statusMap: {[key: string]: string} = {
+      const statusMap: { [key: string]: string } = {
         'Pending': 'under_review',
         'Approved': 'approved',
         'Rejected': 'rejected'
@@ -221,13 +221,13 @@ export function AdminLoanApplications() {
   const loan = selectedLoan !== null ? loans[selectedLoan] : null;
 
   const getStatusCount = (status: string) => {
-    const statusMap: {[key: string]: string} = {
+    const statusMap: { [key: string]: string } = {
       'All': '',
       'Pending': 'under_review',
       'Approved': 'approved',
       'Rejected': 'rejected'
     };
-    
+
     if (status === "All") return loans.length;
     const targetStatus = statusMap[status];
     return loans.filter(app => app.status === targetStatus).length;
@@ -281,13 +281,13 @@ export function AdminLoanApplications() {
 
   const submitApproval = async () => {
     if (selectedLoan === null) return;
-    
+
     const loanId = loans[selectedLoan].id;
     setActionLoading(true);
-    
+
     try {
       const response = await apiClient.patch(`${API_BASE_URL}/admin/loans/${loanId}/approve`, approvalData);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Loan approved:', data);
@@ -311,13 +311,13 @@ export function AdminLoanApplications() {
 
   const submitRejection = async () => {
     if (selectedLoan === null) return;
-    
+
     const loanId = loans[selectedLoan].id;
     setActionLoading(true);
-    
+
     try {
       const response = await apiClient.patch(`${API_BASE_URL}/admin/loans/${loanId}/reject`, { rejectionReason });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Loan rejected:', data);
@@ -354,25 +354,25 @@ export function AdminLoanApplications() {
         }
       `}</style>
 
-      {/* Modern Glassmorphic Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+      {/* Modern Brutalist Header */}
+      <header className="bg-white border-b-[1.5px] border-black flex-shrink-0 z-10 relative">
         <div className="w-full px-6 sm:px-8 md:px-10 lg:px-12">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-bold text-lg sm:text-xl text-slate-900">CREDIT - Admin</span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span> ADMIN</span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => navigate("/admin")} className="text-slate-600 hover:text-slate-900 transition-colors">Dashboard</button>
-              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-600 hover:text-slate-900 transition-colors">Users</button> */}
-              <button onClick={() => navigate("/admin/loans")} className="text-slate-900 font-medium hover:text-blue-600 transition-colors">Loans</button>
-              <button onClick={() => navigate("/admin/reports")} className="text-slate-600 hover:text-slate-900 transition-colors">Audit Log</button>
-              <button onClick={() => navigate("/admin/models")} className="text-slate-600 hover:text-slate-900 transition-colors">Models</button>
+            <nav className="hidden md:flex items-center gap-8 mt-1">
+              <button onClick={() => navigate("/admin")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Dashboard</button>
+              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Users</button> */}
+              <button onClick={() => navigate("/admin/loans")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Loans</button>
+              <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Audit Log</button>
+              <button onClick={() => navigate("/admin/models")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Models</button>
             </nav>
             <Button
               onClick={() => logout()}
               variant="outline"
-              className="border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+              className="border-[1.5px] border-black text-black bg-white hover:bg-black hover:text-white rounded-none font-black text-xs uppercase tracking-[0.15em] transition-all hover:scale-[1.03]"
             >
               Logout
             </Button>
@@ -381,19 +381,19 @@ export function AdminLoanApplications() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden max-w-full">
+      <main className="flex-1 flex overflow-hidden max-w-full bg-[#fafafa]">
         {/* Left Panel - Loans Table */}
-        <div className={`transition-all duration-300 border-r border-slate-200 overflow-hidden flex flex-col min-w-0 ${selectedLoan !== null ? 'w-full lg:w-3/5' : 'w-full'}`}>
-          <div className="p-8 space-y-6 flex flex-col h-full overflow-hidden">
+        <div className={`transition-all duration-300 border-r-[1.5px] border-black overflow-hidden flex flex-col min-w-0 ${selectedLoan !== null ? 'w-full lg:w-3/5' : 'w-full'}`}>
+          <div className="p-8 space-y-6 flex flex-col h-full overflow-hidden animate-in fade-in duration-500">
             {/* Header with Title and Search */}
-            <div className="flex justify-between items-center gap-6 flex-shrink-0">
-              <h1 className="text-3xl font-bold text-slate-900 flex-shrink-0">Loan Applications</h1>
-              <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-600" />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 flex-shrink-0">
+              <h1 className="text-4xl md:text-5xl font-black text-black tracking-tighter uppercase">LOAN APPLICATIONS</h1>
+              <div className="relative w-full md:max-w-xs">
+                <Search className="absolute left-4 top-3.5 w-5 h-5 text-black" />
                 <input
                   type="text"
-                  placeholder="Search by name or ID"
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="SEARCH APPLICATIONS..."
+                  className="w-full pl-12 pr-4 py-3 bg-white border-[1.5px] border-black rounded-none text-black placeholder-black/50 font-bold uppercase text-xs tracking-widest focus:outline-none focus:ring-0 focus:border-blue-600 focus:shadow-[4px_4px_0_0_rgba(37,99,235,1)] transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -401,32 +401,32 @@ export function AdminLoanApplications() {
             </div>
 
             {/* Filter Tabs - Single Row */}
-            <div className="flex gap-3 items-center flex-wrap flex-shrink-0">
+            <div className="flex gap-4 items-center flex-wrap flex-shrink-0 pt-2">
               {["All", "Pending", "Approved", "Rejected"].map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${filterStatus === status
-                      ? "bg-blue-500 text-white"
-                      : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10"
+                  className={`px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest transition-all duration-200 shadow-[2px_2px_0_0_rgba(0,0,0,0.15)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_rgba(37,99,235,0.3)] flex items-center gap-2 ${filterStatus === status
+                    ? "bg-blue-600 text-white border-[1.5px] border-blue-600"
+                    : "bg-white text-black border-[1.5px] border-slate-300 hover:border-blue-600"
                     }`}
                 >
-                  {status} ({getStatusCount(status)})
+                  {status} <span className={`inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full text-[10px] font-black ${filterStatus === status ? 'bg-white text-blue-600' : 'bg-slate-100 text-slate-600'}`}>{getStatusCount(status)}</span>
                 </button>
               ))}
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto hide-scrollbar bg-white border border-slate-200 rounded-2xl relative">
+            <div className="flex-1 overflow-auto hide-scrollbar bg-white border border-slate-200 rounded-none relative shadow-sm">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-20 bg-slate-50 shadow-sm border-b border-slate-200">
+                <thead className="sticky top-0 z-20 bg-slate-50 border-b-[1.5px] border-slate-200 shadow-sm">
                   <tr>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">User</th>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Category</th>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Loan Amount</th>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Tenure</th>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">EMI</th>
-                    <th className="text-left py-4 px-6 text-xs font-bold text-slate-700 uppercase whitespace-nowrap">Status</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">User</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Category</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Loan Amount</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Tenure</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">EMI Estimate</th>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -434,42 +434,41 @@ export function AdminLoanApplications() {
                     <tr
                       key={loanApp.id}
                       onClick={() => handleLoanClick(loans.findIndex(l => l.id === loanApp.id), loanApp.id)}
-                      className="hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-200"
+                      className="hover:bg-blue-50/50 cursor-pointer transition-colors"
                     >
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
-                            <span className="text-white font-bold text-xs">{loanApp.name.charAt(0)}</span>
+                      <td className="py-5 px-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 border-[1.5px] border-blue-600 bg-blue-600 flex items-center justify-center flex-shrink-0 rounded-full">
+                            <span className="text-white font-black text-sm uppercase">{loanApp.name.charAt(0)}</span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{loanApp.name}</p>
+                            <p className="text-sm font-black text-black uppercase tracking-wider truncate">{loanApp.name}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-sm text-slate-600 whitespace-nowrap">{loanApp.category}</td>
-                      <td className="py-4 px-6 text-sm font-semibold text-slate-900 whitespace-nowrap">
+                      <td className="py-5 px-6 text-sm font-bold text-slate-700 uppercase tracking-widest whitespace-nowrap">{loanApp.category}</td>
+                      <td className="py-5 px-6 text-lg font-black text-black tracking-tight whitespace-nowrap">
                         {loanApp.loanAmount ? `₹${(loanApp.loanAmount / 1000).toFixed(0)},000` : "₹0"}
                       </td>
-                      <td className="py-4 px-6 text-sm text-slate-600 whitespace-nowrap">{loanApp.tenure || "0"} months</td>
-                      <td className="py-4 px-6 text-sm font-semibold text-slate-900 whitespace-nowrap">
-                        {loanApp.rawLoan?.aiAnalysis?.suggestedInterestRate 
-                          ? `₹${Math.round((loanApp.loanAmount * (loanApp.rawLoan.aiAnalysis.suggestedInterestRate / 100 / 12)) / (1 - Math.pow(1 + (loanApp.rawLoan.aiAnalysis.suggestedInterestRate / 100 / 12), -loanApp.tenure)))}` 
+                      <td className="py-5 px-6 text-sm font-bold text-slate-700 uppercase whitespace-nowrap">{loanApp.tenure || "0"} MO</td>
+                      <td className="py-5 px-6 text-lg font-black text-black tracking-tight whitespace-nowrap">
+                        {loanApp.rawLoan?.aiAnalysis?.suggestedInterestRate
+                          ? `₹${Math.round((loanApp.loanAmount * (loanApp.rawLoan.aiAnalysis.suggestedInterestRate / 100 / 12)) / (1 - Math.pow(1 + (loanApp.rawLoan.aiAnalysis.suggestedInterestRate / 100 / 12), -loanApp.tenure)))}`
                           : "₹0"}
                       </td>
-                      <td className="py-4 px-6 text-sm whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded text-xs font-bold ${
-                          loanApp.status === 'approved'
-                            ? 'bg-green-500/20 text-green-400'
-                            : loanApp.status === 'under_review'
-                              ? 'bg-yellow-500/20 text-yellow-400'
-                              : loanApp.status === 'rejected'
-                                ? 'bg-red-500/20 text-red-400'
-                                : 'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {loanApp.status === 'under_review' ? 'Pending' : 
-                           loanApp.status === 'approved' ? 'Approved' :
-                           loanApp.status === 'rejected' ? 'Rejected' :
-                           loanApp.status.charAt(0).toUpperCase() + loanApp.status.slice(1)}
+                      <td className="py-5 px-6 text-sm whitespace-nowrap">
+                        <span className={`inline-flex items-center px-4 py-1.5 rounded-sm border text-xs font-black uppercase tracking-[0.1em] ${loanApp.status === 'approved'
+                          ? 'bg-green-50 border-green-300 text-green-700'
+                          : loanApp.status === 'under_review'
+                            ? 'bg-yellow-50 border-yellow-300 text-yellow-700'
+                            : loanApp.status === 'rejected'
+                              ? 'bg-red-50 border-red-300 text-red-600'
+                              : 'bg-gray-50 border-gray-300 text-gray-600'
+                          }`}>
+                          {loanApp.status === 'under_review' ? 'PENDING' :
+                            loanApp.status === 'approved' ? 'APPROVED' :
+                              loanApp.status === 'rejected' ? 'REJECTED' :
+                                loanApp.status.toUpperCase()}
                         </span>
                       </td>
                     </tr>
@@ -482,74 +481,83 @@ export function AdminLoanApplications() {
 
         {/* Right Panel - Loan Details (Conditional) */}
         {loan && selectedLoan !== null && (
-          <div className="hidden lg:flex lg:w-2/5 flex-col bg-white border-l border-slate-200 hide-scrollbar overflow-y-auto max-h-screen min-w-0">
-            <div className="p-4 space-y-3 flex-1 w-full overflow-x-hidden">
+          <div className="hidden lg:flex lg:w-2/5 flex-col bg-white border-l-[1.5px] border-black hide-scrollbar overflow-y-auto max-h-screen min-w-0 shadow-[-4px_0_15px_-5px_rgba(0,0,0,0.1)] z-10">
+            <div className="p-8 space-y-8 flex-1 w-full overflow-x-hidden animate-in slide-in-from-right-8 duration-500">
               {/* Close Button */}
-              <div className="flex justify-end mb-2 sticky top-0 z-20\">
-                <button onClick={() => setSelectedLoan(null)} className="text-slate-600 hover:text-slate-900 transition-colors p-2 flex-shrink-0">
-                  <X className="w-5 h-5\" />
+              <div className="flex justify-end mb-2 sticky top-0 z-20">
+                <button onClick={() => setSelectedLoan(null)} className="text-black bg-white border-[1.5px] border-transparent hover:border-black hover:bg-black hover:text-white transition-all p-2 flex-shrink-0">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* User Profile - Compact */}
               <div className="py-1">
-                <h2 className="text-3xl font-bold text-slate-900">{loan.name}</h2>
-                <div className="flex justify-between text-base font-semibold text-slate-700 mt-2">
-                  <span>{loan.category}</span>
-                  <span>📍 {loan.location}</span>
+                <h2 className="text-4xl font-black text-black uppercase tracking-tighter leading-none">{loan.name}</h2>
+                <div className="flex justify-between items-center text-xs font-black tracking-widest text-slate-500 uppercase mt-4 border-b-[1.5px] border-black pb-4">
+                  <span className="bg-slate-100 border-[1.5px] border-black text-black px-3 py-1">{loan.category}</span>
+                  <span className="flex items-center gap-1">📍 {loan.location}</span>
                 </div>
-                
+
                 {/* User Contact Details */}
-                <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">📧 Email:</span>
-                    <span className="text-slate-900 font-medium">{loan.email}</span>
+                <div className="mt-6 bg-white border-[1.5px] border-black p-5 space-y-3 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Email</span>
+                    <span className="text-sm text-black font-bold">{loan.email}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">📱 Phone:</span>
-                    <span className="text-slate-900 font-medium">{loan.phone}</span>
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Phone</span>
+                    <span className="text-sm text-black font-bold">{loan.phone}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">💳 Credit Score:</span>
-                    <span className="text-slate-900 font-bold text-lg">{loan.creditScore}</span>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Credit Score</span>
+                    <span className="text-2xl text-black font-black">{loan.creditScore}</span>
                   </div>
                 </div>
               </div>
 
               {/* Risk Score */}
-              <div className="flex items-center gap-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div>
-                  <p className="text-4xl font-bold text-blue-600">{loan.riskScore}</p>
-                </div>
-                <div>
-                  <p className={`text-sm font-semibold ${getRiskColor(loan.riskLevel)}`}>
-                    {loan.riskLevel} Risk
+              <div className="flex flex-col gap-4 bg-white border-[1.5px] border-black p-5 shadow-[4px_4px_0_0_rgba(0,0,0,1)] group hover:border-blue-600 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-slate-500 tracking-widest">AI Risk Score</span>
+                  <p className={`text-xs font-black uppercase px-3 py-1 border-[1.5px] border-black ${loan.riskLevel === 'Low' ? 'bg-green-400 text-black' :
+                    loan.riskLevel === 'Medium' ? 'bg-yellow-400 text-black' :
+                      'bg-red-500 text-white'
+                    }`}>
+                    {loan.riskLevel} RISK
                   </p>
-                  <p className="text-xs text-slate-600">Default: {(loan.defaultProb * 100).toFixed(1)}%</p>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-6xl font-black text-black tracking-tighter leading-none group-hover:text-blue-600 transition-colors">{loan.riskScore}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-black tracking-tighter leading-none">{(loan.defaultProb * 100).toFixed(1)}<span className="text-xl">%</span></p>
+                    <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Default Prob</p>
+                  </div>
                 </div>
               </div>
 
               {/* Loan Details */}
-              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 uppercase mb-3">Loan Details</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Requested Amount</span>
-                    <span className="text-slate-900 font-semibold">₹{loan.loanAmount?.toLocaleString() || "0"}</span>
+              <div className="bg-white p-5 border-[1.5px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4 border-b-[1.5px] border-black pb-2">Loan Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                    <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Requested</span>
+                    <span className="text-lg text-black font-black leading-none">₹{loan.loanAmount?.toLocaleString() || "0"}</span>
                   </div>
                   {loan.decision !== "REJECT" && (
                     <>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Suggested Amount</span>
-                        <span className="text-green-600 font-semibold">₹{loan.decidedAmount?.toLocaleString() || "0"}</span>
+                      <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Suggested</span>
+                        <span className="text-xl text-blue-600 font-black leading-none">₹{loan.decidedAmount?.toLocaleString() || "0"}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Interest Rate (p.a.)</span>
-                        <span className="text-amber-600 font-semibold">{loan.interest}%</span>
+                      <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Interest (p.a.)</span>
+                        <span className="text-lg text-black font-black leading-none">{loan.interest}%</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Loan Tenure</span>
-                        <span className="text-slate-900 font-semibold">{loan.tenure} months</span>
+                      <div className="flex justify-between items-end pt-1">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Tenure</span>
+                        <span className="text-lg text-black font-black leading-none">{loan.tenure} MO</span>
                       </div>
                     </>
                   )}
@@ -557,77 +565,71 @@ export function AdminLoanApplications() {
               </div>
 
               {/* Explainability */}
-              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 uppercase mb-3">Model Explainability</h3>
+              <div className="bg-black p-5 border-[1.5px] border-black shadow-[4px_4px_0_0_rgba(37,99,235,0.5)]">
+                <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-4 border-b-[1.5px] border-white/20 pb-2">Model Explainability</h3>
                 {explainabilityLoading ? (
-                  <p className="text-sm text-slate-500">Loading explainability...</p>
+                  <p className="text-xs font-bold text-white/50 uppercase tracking-widest animate-pulse">Loading analysis...</p>
                 ) : explainability ? (
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Model Version</span>
-                      <span className="text-slate-900 font-semibold">{explainability.modelVersion || 'N/A'}</span>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <span className="text-[10px] font-black uppercase text-white/50 tracking-widest">Model Version</span>
+                      <span className="text-xs text-white font-bold bg-white/10 px-2 py-0.5">{explainability.modelVersion || 'N/A'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Probability of Default</span>
-                      <span className="text-slate-900 font-semibold">{explainability.probabilityOfDefault != null ? `${(Number(explainability.probabilityOfDefault) * 100).toFixed(1)}%` : 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Risk Level</span>
-                      <span className="text-slate-900 font-semibold">{explainability.riskLevel || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Scoring Source</span>
-                      <span className="text-slate-900 font-semibold">{loan.rawLoan?.features?.scoringSource || explainability?.decisionSummary?.scoringSource || 'N/A'}</span>
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <span className="text-[10px] font-black uppercase text-white/50 tracking-widest">Scoring Source</span>
+                      <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">{loan.rawLoan?.features?.scoringSource || explainability?.decisionSummary?.scoringSource || 'N/A'}</span>
                     </div>
                     {Array.isArray(explainability.explanationSummary) && explainability.explanationSummary.length > 0 && (
-                      <div className="pt-2 border-t border-slate-200">
-                        <p className="text-xs font-semibold text-slate-700 mb-2 uppercase">Reasoning</p>
-                        <ul className="space-y-1 text-xs text-slate-600 list-disc list-inside">
+                      <div className="pt-2">
+                        <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-3 border-l-2 border-blue-500 pl-2">Key Reasoning Factors</p>
+                        <ul className="space-y-2">
                           {explainability.explanationSummary.map((item: string, idx: number) => (
-                            <li key={idx}>{item}</li>
+                            <li key={idx} className="text-xs text-white font-medium bg-white/5 p-2 border-[1.5px] border-white/10">
+                              {item}
+                            </li>
                           ))}
                         </ul>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">Explainability is unavailable for this loan.</p>
+                  <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Explainability unavailable.</p>
                 )}
               </div>
-                           {/* User Application Data */}
+              {/* User Application Data */}
               {loan.isUserSubmitted ? (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <h3 className="text-sm font-bold text-blue-900 uppercase mb-3 text-center">Submitted Application Details</h3>
-                  <div className="space-y-3 text-sm">
+                <div className="bg-white border border-slate-200 p-5 rounded-sm">
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4 border-b border-slate-200 pb-2 text-center">Submitted Details</h3>
+                  <div className="space-y-2 pt-2">
                     {loan.customDetails && Object.entries(loan.customDetails).map(([key, val], idx) => (
-                      <div key={idx} className="flex justify-between border-b border-blue-200 pb-2">
-                        <span className="text-slate-600 font-medium">{key}</span>
-                        <span className="text-slate-900 font-bold text-right pl-4">{String(val)}</span>
+                      <div key={idx} className="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-sm px-3 py-2">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{key}</span>
+                        <span className="text-xs font-black text-black uppercase tracking-wider text-right pl-4 truncate max-w-[50%]">{String(val)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg p-3 border border-slate-200">
-                  <h3 className="text-sm font-bold text-slate-900 uppercase mb-3">Eligibility Profile</h3>
-                  <div className="space-y-2 text-sm text-center text-slate-600 italic py-4">
-                    Mock applicant data structure shown.
+                <div className="bg-white p-5 border border-slate-200 rounded-sm">
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-3">Eligibility Profile</h3>
+                  <div className="space-y-2 text-xs font-bold uppercase tracking-widest text-center text-slate-400 py-4 border border-dashed border-slate-200 rounded-sm">
+                    Mock applicant data
                   </div>
                 </div>
               )}
 
               {/* Uploaded Documents */}
               {loan.submittedDocs && loan.submittedDocs.length > 0 && (
-                <div className="bg-[#1e1e2d] rounded-lg p-3 border border-white/10 mt-3 pt-4">
-                  <h3 className="text-sm font-bold text-emerald-400 uppercase mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Attached Documents
+                <div className="bg-white border-[1.5px] border-black p-5 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mt-4">
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4 border-b-[1.5px] border-black pb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Documents
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {loan.submittedDocs.map((doc: string, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between text-sm bg-black/40 p-2.5 rounded border border-white/5 hover:border-emerald-500/30 transition-colors group">
+                      <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 border-[1.5px] border-black hover:bg-black hover:text-white transition-colors group">
                         <div className="flex items-center gap-3">
-                          <FileText className="w-4 h-4 text-gray-500 group-hover:text-emerald-400" />
-                          <span className="text-gray-200 truncate w-[160px] font-medium">{doc}</span>
+                          <FileText className="w-5 h-5 text-black group-hover:text-white transition-colors" />
+                          <span className="text-xs font-bold truncate max-w-[160px] tracking-wider uppercase">{doc}</span>
                         </div>
                         <Button
                           variant="outline"
@@ -636,7 +638,7 @@ export function AdminLoanApplications() {
                             // In a real app this opens a modal or new tab, here we alert
                             alert(`Opening document viewer for: ${doc}`);
                           }}
-                          className="h-7 text-xs border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all bg-emerald-500/10 px-3"
+                          className="h-8 text-[10px] font-black uppercase tracking-widest border-[1.5px] border-black text-black bg-white group-hover:bg-white group-hover:text-black hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all rounded-none px-4"
                         >
                           View
                         </Button>
@@ -644,17 +646,17 @@ export function AdminLoanApplications() {
                     ))}
                   </div>
                 </div>
-              )}           
+              )}
 
 
 
               {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button onClick={handleApprove} className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 text-sm">
-                  Approve
+              <div className="flex gap-4 pt-6 mt-auto">
+                <Button onClick={handleApprove} className="flex-1 bg-green-400 hover:bg-green-500 text-black border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
+                  Approve Application
                 </Button>
-                <Button onClick={handleReject} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 text-sm">
-                  Reject
+                <Button onClick={handleReject} className="flex-1 bg-red-500 hover:bg-red-600 text-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
+                  Reject Application
                 </Button>
               </div>
             </div>
@@ -664,80 +666,86 @@ export function AdminLoanApplications() {
 
       {/* Approval Modal */}
       {approvalModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-900">Approve Loan</h2>
-              <button onClick={() => setApprovalModalOpen(false)} className="text-slate-600 hover:text-slate-900">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white border-[2px] border-black rounded-none shadow-[12px_12px_0_0_rgba(0,0,0,1)] max-w-md w-full p-8 space-y-6">
+            <div className="flex justify-between items-center border-b-[2px] border-black pb-4">
+              <h2 className="text-2xl font-black text-black uppercase tracking-tighter">Approve Application</h2>
+              <button onClick={() => setApprovalModalOpen(false)} className="text-black hover:text-blue-600 transition-colors bg-white border-[1.5px] border-black hover:border-blue-600 p-1">
+                <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             {loan && (
-              <div className="text-sm text-slate-600 mb-4">
-                <p><span className="font-semibold">Applicant:</span> {loan.name}</p>
-                <p><span className="font-semibold">Requested Amount:</span> ₹{(loan.loanAmount / 100000).toFixed(1)}L</p>
+              <div className="text-sm text-black mb-6 bg-slate-50 border-[1.5px] border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <p className="flex justify-between border-b border-black/10 pb-2 mb-2">
+                  <span className="font-black uppercase tracking-widest text-xs text-slate-500">Applicant:</span>
+                  <span className="font-bold uppercase tracking-wider">{loan.name}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span className="font-black uppercase tracking-widest text-xs text-slate-500">Requested:</span>
+                  <span className="font-bold uppercase tracking-wider">₹{(loan.loanAmount / 100000).toFixed(1)}L</span>
+                </p>
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Approved Amount (₹)</label>
+                <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Approved Amount (₹)</label>
                 <input
                   type="number"
                   value={approvalData.approvedAmount}
-                  onChange={(e) => setApprovalData({...approvalData, approvedAmount: parseFloat(e.target.value)})}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  onChange={(e) => setApprovalData({ ...approvalData, approvedAmount: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-3 border-[2px] border-black rounded-none focus:outline-none focus:ring-0 focus:border-blue-600 font-bold uppercase tracking-wider transition-colors"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Interest Rate (% p.a.)</label>
+                <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Interest Rate (% p.a.)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={approvalData.interestRate}
-                  onChange={(e) => setApprovalData({...approvalData, interestRate: parseFloat(e.target.value)})}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  onChange={(e) => setApprovalData({ ...approvalData, interestRate: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-3 border-[2px] border-black rounded-none focus:outline-none focus:ring-0 focus:border-blue-600 font-bold uppercase tracking-wider transition-colors"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Tenure (months)</label>
+                <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Tenure (months)</label>
                 <input
                   type="number"
                   value={approvalData.tenure}
-                  onChange={(e) => setApprovalData({...approvalData, tenure: parseInt(e.target.value)})}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  onChange={(e) => setApprovalData({ ...approvalData, tenure: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border-[2px] border-black rounded-none focus:outline-none focus:ring-0 focus:border-blue-600 font-bold uppercase tracking-wider transition-colors"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Notes (Optional)</label>
+                <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Notes (Optional)</label>
                 <textarea
                   value={approvalData.notes}
-                  onChange={(e) => setApprovalData({...approvalData, notes: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                  onChange={(e) => setApprovalData({ ...approvalData, notes: e.target.value })}
+                  className="w-full px-4 py-3 border-[2px] border-black rounded-none focus:outline-none focus:ring-0 focus:border-blue-600 font-bold tracking-wider transition-colors"
                   rows={3}
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
+            <div className="flex gap-4 justify-end pt-6 border-t-[2px] border-black">
               <Button
                 onClick={() => setApprovalModalOpen(false)}
                 variant="outline"
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="border-[2px] border-black text-black rounded-none font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all px-6 py-5"
                 disabled={actionLoading}
               >
                 Cancel
               </Button>
               <Button
                 onClick={submitApproval}
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-blue-600 border-[2px] border-black text-white rounded-none font-black uppercase tracking-widest hover:bg-blue-700 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all px-8 py-5"
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Processing...' : 'Confirm Approval'}
+                {actionLoading ? 'PROCESSING...' : 'CONFIRM APPROVAL'}
               </Button>
             </div>
           </div>
@@ -746,48 +754,54 @@ export function AdminLoanApplications() {
 
       {/* Rejection Modal */}
       {rejectionModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-900">Reject Loan</h2>
-              <button onClick={() => setRejectionModalOpen(false)} className="text-slate-600 hover:text-slate-900">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white border-[2px] border-black rounded-none shadow-[12px_12px_0_0_rgba(0,0,0,1)] max-w-md w-full p-8 space-y-6">
+            <div className="flex justify-between items-center border-b-[2px] border-black pb-4">
+              <h2 className="text-2xl font-black text-black uppercase tracking-tighter">Reject Application</h2>
+              <button onClick={() => setRejectionModalOpen(false)} className="text-black hover:text-red-600 transition-colors bg-white border-[1.5px] border-black hover:border-red-600 p-1">
+                <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             {loan && (
-              <div className="text-sm text-slate-600 mb-4">
-                <p><span className="font-semibold">Applicant:</span> {loan.name}</p>
-                <p><span className="font-semibold">Loan Type:</span> {loan.category}</p>
+              <div className="text-sm text-black mb-6 bg-slate-50 border-[1.5px] border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                <p className="flex justify-between border-b border-black/10 pb-2 mb-2">
+                  <span className="font-black uppercase tracking-widest text-xs text-slate-500">Applicant:</span>
+                  <span className="font-bold uppercase tracking-wider">{loan.name}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span className="font-black uppercase tracking-widest text-xs text-slate-500">Category:</span>
+                  <span className="font-bold uppercase tracking-wider">{loan.category}</span>
+                </p>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Rejection Reason</label>
+              <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-2">Rejection Reason</label>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Provide a reason for rejection..."
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                placeholder="PROVIDE REASON..."
+                className="w-full px-4 py-3 border-[2px] border-black rounded-none focus:outline-none focus:ring-0 focus:border-red-600 font-bold tracking-wider transition-colors"
                 rows={4}
               />
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
+            <div className="flex gap-4 justify-end pt-6 border-t-[2px] border-black">
               <Button
                 onClick={() => setRejectionModalOpen(false)}
                 variant="outline"
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="border-[2px] border-black text-black rounded-none font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all px-6 py-5"
                 disabled={actionLoading}
               >
                 Cancel
               </Button>
               <Button
                 onClick={submitRejection}
-                className="bg-red-500 hover:bg-red-600 text-white"
+                className="bg-red-500 border-[2px] border-black text-white rounded-none font-black uppercase tracking-widest hover:bg-red-600 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all px-8 py-5"
                 disabled={actionLoading || !rejectionReason.trim()}
               >
-                {actionLoading ? 'Processing...' : 'Confirm Rejection'}
+                {actionLoading ? 'PROCESSING...' : 'CONFIRM REJECTION'}
               </Button>
             </div>
           </div>

@@ -287,8 +287,8 @@ function transformApplicationToModelFeatures({
     Number(borrowerProfile?.smallBusiness?.annualRevenue || 0) > 0
       ? Number(borrowerProfile.smallBusiness.annualRevenue) / 12
       : (toNumberOrNull(
-          borrowerProfile?.smallBusiness?.monthlyTransactionVolume
-        ) ?? 0);
+        borrowerProfile?.smallBusiness?.monthlyTransactionVolume
+      ) ?? 0);
   const monthlyExpenses =
     toNumberOrNull(borrowerProfile?.noIncome?.monthlyExpenses) ??
     (monthlyRevenue > 0 ? monthlyRevenue * 0.72 : 0);
@@ -473,7 +473,7 @@ function buildDecisionFromLayers({
 export const applyForLoan = async (req, res) => {
   try {
     console.log("\n📥 LOAN APPLICATION RECEIVED");
-    console.log("📨 Request body:", JSON.stringify(req.body, null, 2));
+    console.log(" Request body:", JSON.stringify(req.body, null, 2));
     const userId = req.user?._id;
     console.log("👤 User ID from auth:", userId);
 
@@ -519,8 +519,8 @@ export const applyForLoan = async (req, res) => {
         .json({ message: `Invalid loan type: ${loanType}` });
     }
 
-    console.log(`✅ Validated user: ${userId}`);
-    console.log(`✅ Validated loan type: ${loanType}`);
+    console.log(` Validated user: ${userId}`);
+    console.log(` Validated loan type: ${loanType}`);
 
     // Pull user and optional borrower profile for layered scoring.
     const [user, borrowerProfile] = await Promise.all([
@@ -537,16 +537,16 @@ export const applyForLoan = async (req, res) => {
     const normalizedEducationDetails =
       loanType === "education"
         ? {
-            courseName:
-              String(educationDetails?.courseName || "").trim() || null,
-            university:
-              String(educationDetails?.university || "").trim() || null,
-            studyLocation:
-              String(educationDetails?.studyLocation || "").trim() || null,
-            courseDurationYears: toNumberOrNull(
-              educationDetails?.courseDurationYears
-            ),
-          }
+          courseName:
+            String(educationDetails?.courseName || "").trim() || null,
+          university:
+            String(educationDetails?.university || "").trim() || null,
+          studyLocation:
+            String(educationDetails?.studyLocation || "").trim() || null,
+          courseDurationYears: toNumberOrNull(
+            educationDetails?.courseDurationYears
+          ),
+        }
         : null;
 
     const normalizedApplicantProfile = {
@@ -752,7 +752,7 @@ export const applyForLoan = async (req, res) => {
     }
 
     console.log(
-      `✅ LOAN SAVED: ${savedLoan._id} - Status: ${savedLoan.status}`
+      ` LOAN SAVED: ${savedLoan._id} - Status: ${savedLoan.status}`
     );
 
     // Send submission confirmation email
@@ -767,11 +767,11 @@ export const applyForLoan = async (req, res) => {
           status: savedLoan.status,
         });
         console.log(
-          `📧 Loan submission confirmation email sent to: ${user.email}`
+          ` Loan submission confirmation email sent to: ${user.email}`
         );
       } catch (emailError) {
         console.error(
-          "❌ Failed to send loan submission email:",
+          "Failed to send loan submission email:",
           emailError.message
         );
         // Continue - email failure doesn't block the loan submission
@@ -797,7 +797,7 @@ export const applyForLoan = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ ERROR APPLYING LOAN:", error.message);
+    console.error("ERROR APPLYING LOAN:", error.message);
     console.error("Full Error:", error);
     if (error.errors) {
       console.error(
@@ -810,8 +810,8 @@ export const applyForLoan = async (req, res) => {
       error: error.message,
       details: error.errors
         ? Object.keys(error.errors).map(
-            (k) => `${k}: ${error.errors[k].message}`
-          )
+          (k) => `${k}: ${error.errors[k].message}`
+        )
         : undefined,
     });
   }
@@ -832,7 +832,7 @@ export const getMyLoans = async (req, res) => {
       submittedAt: -1,
     });
 
-    console.log(`✅ Found ${loans.length} loans`);
+    console.log(` Found ${loans.length} loans`);
 
     return res.status(200).json({
       message: "Loans fetched successfully",
@@ -840,7 +840,7 @@ export const getMyLoans = async (req, res) => {
       loans: loans,
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING LOANS:", error.message);
+    console.error("ERROR FETCHING LOANS:", error.message);
     return res.status(500).json({
       message: "Error fetching loans",
       error: error.message,
@@ -868,11 +868,11 @@ export const getMyLoanById = async (req, res) => {
       .populate("adminDecision.adminId", "fullName email");
 
     if (!loan) {
-      console.log(`❌ Loan not found or doesn't belong to this user`);
+      console.log(`Loan not found or doesn't belong to this user`);
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    console.log(`✅ Loan found`);
+    console.log(` Loan found`);
     console.log(`   Status: ${loan.status}`);
     console.log(`   Amount: ₹${loan.requestedAmount}`);
     console.log(`   User: ${loan.userId?.fullName}`);
@@ -882,7 +882,7 @@ export const getMyLoanById = async (req, res) => {
       loan,
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING LOAN:", error.message);
+    console.error("ERROR FETCHING LOAN:", error.message);
     return res.status(500).json({
       message: "Error fetching loan",
       error: error.message,
@@ -915,14 +915,14 @@ export const acceptLoanOffer = async (req, res) => {
     loan.status = "accepted";
     const updatedLoan = await loan.save();
 
-    console.log(`✅ Loan ${loanId} accepted`);
+    console.log(` Loan ${loanId} accepted`);
 
     return res.status(200).json({
       message: "Loan accepted",
       loan: updatedLoan,
     });
   } catch (error) {
-    console.error("❌ ERROR ACCEPTING LOAN:", error.message);
+    console.error("ERROR ACCEPTING LOAN:", error.message);
     return res.status(500).json({
       message: "Error accepting loan",
       error: error.message,
@@ -955,14 +955,14 @@ export const declineLoanOffer = async (req, res) => {
     loan.status = "declined";
     const updatedLoan = await loan.save();
 
-    console.log(`✅ Loan ${loanId} declined`);
+    console.log(` Loan ${loanId} declined`);
 
     return res.status(200).json({
       message: "Loan declined",
       loan: updatedLoan,
     });
   } catch (error) {
-    console.error("❌ ERROR DECLINING LOAN:", error.message);
+    console.error("ERROR DECLINING LOAN:", error.message);
     return res.status(500).json({
       message: "Error declining loan",
       error: error.message,

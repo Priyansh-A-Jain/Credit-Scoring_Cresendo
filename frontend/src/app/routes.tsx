@@ -10,6 +10,7 @@ import { AuditLog } from "./components/AuditLog";
 import { ModelStatus } from "./components/ModelStatus";
 import { ApplyLoanPage } from "./components/ApplyLoanPage";
 import { MyLoansPage } from "./components/MyLoansPage";
+import { ProfilePage } from "./components/ProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
   {
     path: "/my-loans",
     element: <ProtectedRoute requiredRole="user"><MyLoansPage /></ProtectedRoute>,
+  },
+  {
+    path: "/profile",
+    element: <ProtectedRoute requiredRole="user"><ProfilePage /></ProtectedRoute>,
   },
   {
     path: "/admin",

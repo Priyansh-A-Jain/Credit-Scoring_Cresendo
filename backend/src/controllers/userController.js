@@ -16,7 +16,7 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log(`✅ Profile fetched for user: ${user.fullName}`);
+    console.log(`Profile fetched for user: ${user.fullName}`);
 
     return res.status(200).json({
       user: {
@@ -26,7 +26,7 @@ export const getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING PROFILE:", error.message);
+    console.error("ERROR FETCHING PROFILE:", error.message);
     return res.status(500).json({
       message: "Error fetching profile",
       error: error.message,
@@ -57,7 +57,7 @@ export const getDashboard = async (req, res) => {
       status: { $in: ["approved", "disbursed", "accepted"] },
     });
 
-    console.log(`✅ Dashboard fetched for user: ${user.fullName}`);
+    console.log(` Dashboard fetched for user: ${user.fullName}`);
 
     return res.status(200).json({
       fullName: user.fullName,
@@ -74,7 +74,7 @@ export const getDashboard = async (req, res) => {
       memberSince: user.createdAt,
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING DASHBOARD:", error.message);
+    console.error("ERROR FETCHING DASHBOARD:", error.message);
     return res.status(500).json({
       message: "Error fetching dashboard",
       error: error.message,
@@ -96,11 +96,11 @@ export const getAcitveLoans = async (req, res) => {
       status: { $in: ["disbursed", "approved", "accepted"] },
     }).select("loanType requestedAmount status submittedAt");
 
-    console.log(`✅ Active loans fetched: ${loans.length}`);
+    console.log(`Active loans fetched: ${loans.length}`);
 
     return res.status(200).json({ loans });
   } catch (error) {
-    console.error("❌ ERROR FETCHING ACTIVE LOANS:", error.message);
+    console.error("ERROR FETCHING ACTIVE LOANS:", error.message);
     return res.status(500).json({
       message: "Error fetching active loans",
       error: error.message,
@@ -123,7 +123,7 @@ export const getInsights = async (req, res) => {
       ],
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING INSIGHTS:", error.message);
+    console.error("ERROR FETCHING INSIGHTS:", error.message);
     return res.status(500).json({
       message: "Error fetching insights",
       error: error.message,
@@ -147,7 +147,7 @@ export const getTransactions = async (req, res) => {
       ],
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING TRANSACTIONS:", error.message);
+    console.error("ERROR FETCHING TRANSACTIONS:", error.message);
     return res.status(500).json({
       message: "Error fetching transactions",
       error: error.message,
@@ -165,7 +165,7 @@ export const getEligibility = async (req, res) => {
       nextStageRequirement: "Repay current loan on time for 3 months",
     });
   } catch (error) {
-    console.error("❌ ERROR FETCHING ELIGIBILITY:", error.message);
+    console.error("ERROR FETCHING ELIGIBILITY:", error.message);
     return res.status(500).json({
       message: "Error fetching eligibility",
       error: error.message,
