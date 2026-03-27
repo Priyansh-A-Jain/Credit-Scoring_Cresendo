@@ -293,11 +293,11 @@ export const approveByAdmin = async (req, res) => {
           }
         );
         console.log(
-          `📧 Loan approval email sent to: ${populatedLoan.userId.email}`
+          `Loan approval email sent to: ${populatedLoan.userId.email}`
         );
       } catch (emailError) {
         console.error(
-          "❌ Failed to send loan approval email:",
+          "Failed to send loan approval email:",
           emailError.message
         );
         // Continue - email failure doesn't block the approval
@@ -368,11 +368,11 @@ export const rejectByAdmin = async (req, res) => {
           }
         );
         console.log(
-          `📧 Loan rejection email sent to: ${populatedLoan.userId.email}`
+          `Loan rejection email sent to: ${populatedLoan.userId.email}`
         );
       } catch (emailError) {
         console.error(
-          "❌ Failed to send loan rejection email:",
+          "Failed to send loan rejection email:",
           emailError.message
         );
         // Continue - email failure doesn't block the rejection
@@ -395,7 +395,7 @@ export const rejectByAdmin = async (req, res) => {
 // Get all loans assigned to this admin (not just pending)
 export const getMyLoans = async (req, res) => {
   try {
-    console.log("📨 getMyLoans called for admin");
+    console.log("getMyLoans called for admin");
     const admin = await User.findById(req.user._id);
 
     if (!admin || admin.role !== "admin") {
@@ -403,7 +403,7 @@ export const getMyLoans = async (req, res) => {
     }
 
     console.log(
-      `🔍 Fetching loans for admin: ${admin.fullName} (type: ${admin.adminLoanType})`
+      `Fetching loans for admin: ${admin.fullName} (type: ${admin.adminLoanType})`
     );
 
     let query = {};
@@ -418,7 +418,7 @@ export const getMyLoans = async (req, res) => {
       .populate("assignedAdminId", "fullName email")
       .sort({ submittedAt: -1 });
 
-    console.log(`✅ Found ${loans.length} loans for admin`);
+    console.log(`Found ${loans.length} loans for admin`);
 
     return res.status(200).json({
       loans: loans.map(attachDecisionSummary),
@@ -426,7 +426,7 @@ export const getMyLoans = async (req, res) => {
       message: "Loans fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Error fetching admin loans:", error.message);
+    console.error("Error fetching admin loans:", error.message);
     return res.status(500).json({
       message: "Error fetching loans",
       error: error.message,
@@ -527,7 +527,7 @@ export const getLoanExplainabilityForAdmin = async (req, res) => {
 // Get audit logs for this admin's actions
 export const getAuditLogs = async (req, res) => {
   try {
-    console.log("📨 getAuditLogs called");
+    console.log(" getAuditLogs called");
     const admin = await User.findById(req.user._id);
 
     if (!admin || admin.role !== "admin") {
@@ -557,7 +557,7 @@ export const getAuditLogs = async (req, res) => {
           : loan.status === "rejected"
             ? "Rejected"
             : "Processed",
-      description: `Application ${loan.status === "approved" ? "approved" : loan.status === "rejected" ? "rejected" : "processed"} by ${admin.fullName}`,
+      description: `Application ${loan.status === "approved" ? "approved" : loan.status === "rejected" ? "rejected" : "processed"} by ${admin.fullName} `,
       timestamp: loan.adminDecision?.decidedAt || loan.submittedAt,
       severity:
         loan.status === "approved"
@@ -567,7 +567,7 @@ export const getAuditLogs = async (req, res) => {
             : "warning",
     }));
 
-    console.log(`✅ Found ${logs.length} audit log entries`);
+    console.log(` Found ${logs.length} audit log entries`);
 
     return res.status(200).json({
       logs,
@@ -575,7 +575,7 @@ export const getAuditLogs = async (req, res) => {
       message: "Audit logs fetched successfully",
     });
   } catch (error) {
-    console.error("❌ Error fetching audit logs:", error.message);
+    console.error("Error fetching audit logs:", error.message);
     return res.status(500).json({
       message: "Error fetching audit logs",
       error: error.message,

@@ -66,13 +66,13 @@ npm run dev
 
 ## Key Features
 
-✅ **Real API Integration** - All auth calls go to backend
-✅ **Token Management** - Access tokens stored securely
-✅ **Error Handling** - User-friendly error messages
-✅ **Loading States** - UI shows loading during API calls
-✅ **OTP Verification** - Two-step authentication
-✅ **Auth Context** - Global state across components
-✅ **Protected Routes** - Easy route protection (coming soon)
+ **Real API Integration** - All auth calls go to backend
+ **Token Management** - Access tokens stored securely
+ **Error Handling** - User-friendly error messages
+ **Loading States** - UI shows loading during API calls
+ **OTP Verification** - Two-step authentication
+ **Auth Context** - Global state across components
+ **Protected Routes** - Easy route protection (coming soon)
 
 ## Common Issues & Solutions
 

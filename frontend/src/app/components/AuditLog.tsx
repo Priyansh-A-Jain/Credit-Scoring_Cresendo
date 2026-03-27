@@ -74,31 +74,31 @@ export function AuditLog() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="h-screen flex flex-col bg-white">
       <style>{`
         html {
           scrollbar-gutter: stable;
         }
       `}</style>
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+      {/* Modern Brutalist Header */}
+      <header className="bg-white border-b-[1.5px] border-black flex-shrink-0 z-10 relative">
         <div className="w-full px-6 sm:px-8 md:px-10 lg:px-12">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-bold text-lg sm:text-xl text-slate-900">CREDIT - Admin</span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span> ADMIN</span>
             </div>
-            <nav className="hidden md:flex items-center gap-8">
-              <button onClick={() => navigate("/admin")} className="text-slate-600 hover:text-slate-900 transition-colors">Dashboard</button>
-              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-600 hover:text-slate-900 transition-colors">Users</button> */}
-              <button onClick={() => navigate("/admin/loans")} className="text-slate-600 hover:text-slate-900 transition-colors">Loans</button>
-              <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-medium hover:text-blue-600 transition-colors">Audit Log</button>
-              <button onClick={() => navigate("/admin/models")} className="text-slate-600 hover:text-slate-900 transition-colors">Models</button>
+            <nav className="hidden md:flex items-center gap-8 mt-1">
+              <button onClick={() => navigate("/admin")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Dashboard</button>
+              {/* <button onClick={() => navigate("/admin/users")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Users</button> */}
+              <button onClick={() => navigate("/admin/loans")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Loans</button>
+              <button onClick={() => navigate("/admin/reports")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Audit Log</button>
+              <button onClick={() => navigate("/admin/models")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Models</button>
             </nav>
             <Button
               onClick={() => logout()}
               variant="outline"
-              className="border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 font-semibold"
+              className="border-[1.5px] border-black text-black bg-white hover:bg-black hover:text-white rounded-none font-black text-xs uppercase tracking-[0.15em] transition-all hover:scale-[1.03]"
             >
               Logout
             </Button>
@@ -107,55 +107,56 @@ export function AuditLog() {
       </header>
 
       {/* Main Content */}
-      <main className="w-full px-10 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-8 flex-1 overflow-y-auto">
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-2">
-            <History className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-slate-900">Audit Log</h1>
+      <main className="w-full px-6 sm:px-8 md:px-12 lg:px-16 py-12 flex-1 overflow-y-auto bg-[#fafafa]">
+        <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-14">
+            <div className="flex items-center gap-4 mb-3">
+              {/* <div className="w-12 h-12 bg-blue-600 flex items-center justify-center rounded-sm">
+                <History className="w-6 h-6 text-white" />
+              </div> */}
+              <h1 className="text-5xl md:text-6xl font-black text-black tracking-tighter uppercase">AUDIT LOG</h1>
+            </div>
+            <p className="text-black/50 font-black uppercase tracking-[0.15em] text-xs">Track all application activities and administrative actions</p>
           </div>
-          <p className="text-slate-600 text-sm">Track all application activities and administrative actions</p>
-        </div>
 
-        {/* Audit Log Table */}
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 transition-all duration-300 shadow-sm">
-          <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
-            <div className="space-y-0">
-              {auditLogs.map((log) => (
-                <div key={log.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">
-                  <div className="px-8 py-5">
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className={`flex-shrink-0 mt-1 ${getEventColor(log.severity)} p-2.5 rounded-lg border`}>
-                        <log.icon className={`w-4 h-4 ${getTextColor(log.severity)}`} />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-4 mb-2">
-                          <div className="flex-1">
-                            <p className="text-sm font-bold text-slate-900">{log.applicantName}</p>
-                            <p className={`text-xs font-semibold mt-1.5 ${getTextColor(log.severity)}`}>
-                              {log.eventType}
-                            </p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-xs text-slate-600 font-medium whitespace-nowrap">{log.timestamp}</p>
-                          </div>
+          {/* Audit Log Table */}
+          <div className="bg-white border border-slate-200 rounded-sm overflow-hidden shadow-sm">
+            <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
+              <div className="space-y-0 divide-y divide-slate-200">
+                {auditLogs.map((log) => (
+                  <div key={log.id} className="hover:bg-blue-50/50 transition-colors duration-200">
+                    <div className="px-8 py-6">
+                      <div className="flex items-start gap-6">
+                        {/* Icon */}
+                        <div className={`flex-shrink-0 mt-1 ${getEventColor(log.severity)} p-3 border rounded-sm`}>
+                          <log.icon className={`w-5 h-5 ${getTextColor(log.severity)}`} strokeWidth={2.5} />
                         </div>
-                        <p className="text-xs text-slate-600 leading-relaxed">{log.description}</p>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-4 mb-2">
+                            <div className="flex-1">
+                              <p className="text-sm font-black text-black uppercase tracking-wider">{log.applicantName}</p>
+                              <p className={`text-[10px] font-black uppercase tracking-[0.15em] mt-1.5 ${getTextColor(log.severity)}`}>
+                                {log.eventType}
+                              </p>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest whitespace-nowrap">{log.timestamp}</p>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-black font-black uppercase tracking-[0.15em] mt-2">
+                            {log.description.replace(/\s*by\s+.*?Admin$/i, '')}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Footer Info */}
-        {/* <div className="mt-6 text-center text-xs text-gray-400">
-          <p>Total Audit Records: {auditLogs.length} • Last Updated: 2026-03-24 3:30 PM IST</p>
-        </div> */}
       </main>
     </div>
   );
