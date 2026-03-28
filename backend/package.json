@@ -14,7 +14,16 @@
     "demo:priority1": "node --env-file=.env scripts/demo_priority1_benchmarks.js",
     "smoke:ml": "node --env-file=.env scripts/smoke_ml_service.js",
     "smoke:phase4": "node --env-file=.env scripts/smoke_phase4_admin_flow.js",
-    "smoke:phase5": "node --env-file=.env scripts/smoke_phase5_admin_actions.js"
+    "smoke:phase5": "node --env-file=.env scripts/smoke_phase5_admin_actions.js",
+    "debug:card": "node --env-file=.env scripts/debug_applicant_card.js",
+    "test:fetch": "node --env-file=.env scripts/testApplicantFetch.js",
+    "test:ollama": "node --env-file=.env scripts/testOllamaGrounding.js",
+    "test:router": "node scripts/testQueryRouter.js",
+    "test:handlers": "node --env-file=.env scripts/testChatHandlers.js",
+    "chroma:sync": "node --env-file=.env scripts/chromaExport.js",
+    "chroma:sync:one": "node --env-file=.env scripts/chromaExport.js --id",
+    "chroma:query": "python3 ai/chroma_query.py",
+    "chroma:test": "python3 ai/test_chroma.py"
   },
   "keywords": [
     "Credit",

@@ -6,6 +6,7 @@ import creditRouter from "./routes/credit.js";
 import loanRouter from "./routes/loan.js";
 import adminRouter from "./routes/admin.js";
 import borrowerProfileRouter from "./routes/borrowerProfile.js";
+import chatRouter from "./routes/chatRoutes.js";
 import { getModelReadiness } from "./services/mlService.js";
 
 const app = express();
@@ -70,6 +71,7 @@ app.use("/api/credit", creditRouter);
 app.use("/api/loan", loanRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/profile", borrowerProfileRouter);
+app.use("/api", chatRouter);
 
 app.get("/api/health", async (req, res) => {
   const dbReady = mongoose.connection.readyState === 1;
