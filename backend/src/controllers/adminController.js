@@ -165,6 +165,10 @@ export const getAdminDashboard = async (req, res) => {
       ...query,
       status: "rejected",
     });
+    const autoRejectedLoans = await LoanApplication.countDocuments({
+      ...query,
+      status: "auto_rejected",
+    });
     const pendingLoans = await LoanApplication.countDocuments({
       ...query,
       status: "under_review",
@@ -222,6 +226,7 @@ export const getAdminDashboard = async (req, res) => {
         totalApplications,
         approvedLoans,
         rejectedLoans,
+        autoRejectedLoans,
         pendingLoans,
         totalDisbursed,
         activeLoans,

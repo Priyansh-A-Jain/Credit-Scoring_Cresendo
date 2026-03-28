@@ -6,6 +6,44 @@ import { predictCreditScoreWithModel } from "../services/mlService.js";
 
 const DEFAULT_EDUCATION = "Secondary / secondary special";
 
+const STATUS_DISPLAY_MAP = {
+  pending: "Under Review",
+  under_review: "Under Review",
+  review: "Under Review",
+  hold: "Under Review",
+  processing: "Under Review",
+  auto_approved: "Approved",
+  approved: "Approved",
+  accepted: "Approved",
+  disbursed: "Approved",
+  ongoing: "Approved",
+  completed: "Approved",
+  closed: "Approved",
+  rejected: "Rejected",
+  declined: "Rejected",
+  auto_rejected: "Auto Rejected",
+};
+
+const LOAN_TYPE_PREFIX = {
+  personal: "P",
+  home: "H",
+  auto: "A",
+  education: "E",
+  business: "B",
+  credit_card: "C",
+};
+
+async function generateLoanCode(loanType) {
+  const prefix = LOAN_TYPE_PREFIX[loanType] || "X";
+  const countForType = await LoanApplication.countDocuments({ loanType });
+  return `${prefix}${countForType + 1}`;
+}
+
+function getLoanDisplayStatus(status) {
+  const normalized = String(status || "").toLowerCase();
+  return STATUS_DISPLAY_MAP[normalized] || "Under Review";
+}
+
 function toNumberOrNull(value) {
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
@@ -660,6 +698,13 @@ export const applyForLoan = async (req, res) => {
       submittedAt: new Date(),
     };
 
+    // Generate a human-readable loan code like P1, H2, etc.
+    try {
+      loanData.loanCode = await generateLoanCode(loanType);
+    } catch (codeError) {
+      console.warn("⚠ Failed to generate loanCode, continuing without it:", codeError.message);
+    }
+
     // Add loan-specific details
     if (loanType === "home" && homeDetails) {
       loanData.homeDetails = {
@@ -835,12 +880,18 @@ export const getMyLoans = async (req, res) => {
       submittedAt: -1,
     });
 
-    console.log(` Found ${loans.length} loans`);
+    const normalizedLoans = loans.map((loanDoc) => {
+      const loan = loanDoc.toObject({ virtuals: true });
+      loan.displayStatus = getLoanDisplayStatus(loan.status);
+      return loan;
+    });
+
+    console.log(` Found ${normalizedLoans.length} loans`);
 
     return res.status(200).json({
       message: "Loans fetched successfully",
-      data: { loans },
-      loans: loans,
+      data: { loans: normalizedLoans },
+      loans: normalizedLoans,
     });
   } catch (error) {
     console.error("ERROR FETCHING LOANS:", error.message);
@@ -865,15 +916,18 @@ export const getMyLoanById = async (req, res) => {
     console.log(`   Loan ID: ${loanId}`);
     console.log(`   User ID: ${userId}`);
 
-    const loan = await LoanApplication.findOne({ _id: loanId, userId })
+    const loanDoc = await LoanApplication.findOne({ _id: loanId, userId })
       .populate("userId", "fullName email phone creditScore")
       .populate("assignedAdminId", "fullName email")
       .populate("adminDecision.adminId", "fullName email");
 
-    if (!loan) {
+    if (!loanDoc) {
       console.log(`Loan not found or doesn't belong to this user`);
       return res.status(404).json({ message: "Loan not found" });
     }
+
+    const loan = loanDoc.toObject({ virtuals: true });
+    loan.displayStatus = getLoanDisplayStatus(loan.status);
 
     console.log(` Loan found`);
     console.log(`   Status: ${loan.status}`);

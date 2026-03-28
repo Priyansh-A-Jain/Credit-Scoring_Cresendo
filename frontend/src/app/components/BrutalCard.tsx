@@ -1,6 +1,6 @@
 export function BrutalCard() {
   return (
-    <div className="relative w-full max-w-[550px] aspect-[1.6/1] bg-white border-[3px] border-black p-6 md:p-8 flex flex-col shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all duration-300">
+    <div className="relative w-full max-w-[550px] aspect-[1.6/1] bg-white border-[3px] border-black p-6 md:p-8 flex flex-col shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:-translate-y-3 hover:-rotate-1 hover:scale-[1.02] hover:shadow-[20px_24px_0_0_rgba(0,0,0,1)] transition-all duration-500 ease-out">
       <div className="flex justify-between items-start mb-8 md:mb-12">
         <div className="border-b-[4px] border-blue-600 pb-1 inline-block">
           <span className="font-black text-2xl md:text-3xl tracking-tighter text-black uppercase">CREDIT.</span>

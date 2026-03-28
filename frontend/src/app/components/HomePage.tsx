@@ -15,10 +15,10 @@ export function HomePage() {
         </div>
         <div className="hidden md:flex gap-10 text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
           <a href="#about" className="hover:opacity-70 transition-opacity">About</a>
-          <a href="#logic" className="hover:opacity-70 transition-opacity">Logic</a>
-          <a href="#secure" className="hover:opacity-70 transition-opacity">Secure</a>
+          <a href="#logic" className="hover:opacity-70 transition-opacity">How it works</a>
+          <a href="#secure" className="hover:opacity-70 transition-opacity">Security</a>
         </div>
-        <button 
+        <button
           onClick={() => navigate("/login")}
           className="bg-black text-white hover:bg-black/90 rounded-none border-[1.5px] border-transparent font-black text-[10px] md:text-xs px-6 py-2 uppercase tracking-[0.2em] transition-all"
         >
@@ -66,19 +66,19 @@ export function HomePage() {
               Traditional systems reject you. We don't.
             </p>
           </div>
-          
+
           {/* Real-time Behavioral Logic Feed */}
           <div className="lg:pl-20">
             <div className="flex flex-col border-[2px] border-black h-fit bg-white p-6 md:p-8 shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all">
-             <div className="flex justify-between items-center mb-10 pb-4 border-b border-black/10">
-               <span className="font-black text-xs tracking-[0.3em] uppercase opacity-40">SIGNAL_STREAM</span>
-               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                 <span className="font-bold text-[10px] uppercase">LIVE ANALYSIS</span>
-               </div>
-             </div>
-             
-             <div className="flex flex-col gap-6">
+              <div className="flex justify-between items-center mb-10 pb-4 border-b border-black/10">
+                <span className="font-black text-xs tracking-[0.3em] uppercase opacity-40">SIGNAL_STREAM</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  <span className="font-bold text-[10px] uppercase">LIVE ANALYSIS</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-6">
                 <div className="flex justify-between items-center group">
                   <div className="flex flex-col">
                     <span className="font-black text-sm uppercase">RENT_PAYMENT_LOOP</span>
@@ -110,19 +110,19 @@ export function HomePage() {
                   </div>
                   <span className="font-black text-blue-600">+08 PTS</span>
                 </div>
-             </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       {/* Section 2: Data Signals Grid (Adding Hover Effect) */}
       <section className="w-full border-b-[1.5px] border-black py-24 md:py-40 px-8 md:px-12 xl:px-24 bg-black text-white overflow-hidden selection:bg-white selection:text-black">
         <div className="flex flex-col lg:flex-row gap-16 lg:items-end mb-24">
           <div className="flex-1">
             <h2 className="text-[10vw] md:text-[6vw] lg:text-[6rem] leading-[0.85] font-black tracking-tighter uppercase mb-6">
-              USES REAL DATA.<br />
-              <span className="text-blue-600">NOT YOUR PAST.</span>
+              EVALUATES TRUE POTENTIAL.<br />
+              <span className="text-blue-600">BEYOND CREDIT SCORES.</span>
             </h2>
             <p className="font-black text-2xl md:text-4xl max-w-4xl leading-tight opacity-90 text-gray-400">
               Beyond the score. Into the flow.
@@ -162,18 +162,18 @@ export function HomePage() {
             INSTANT DECISION.<br />
             <span className="text-blue-600">NO WAITING.</span>
           </h2>
-          
+
           {/* Small Decision Card Mockup */}
           <div className="w-full max-w-sm border-[3px] border-black p-6 bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] flex flex-col gap-4">
-             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-               <span>CREDIT REPORT</span>
-               <span className="text-green-600">SUCCESS</span>
-             </div>
-             <div className="text-5xl font-black text-black">742</div>
-             <div className="h-2 bg-gray-100 w-full">
-               <div className="h-full bg-blue-600 w-[78%]"></div>
-             </div>
-             <div className="text-[10px] text-gray-400 font-bold uppercase">Decision processed in 2.4s</div>
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+              <span>CREDIT REPORT</span>
+              <span className="text-green-600">SUCCESS</span>
+            </div>
+            <div className="text-5xl font-black text-black">742</div>
+            <div className="h-2 bg-gray-100 w-full">
+              <div className="h-full bg-blue-600 w-[78%]"></div>
+            </div>
+            <div className="text-[10px] text-gray-400 font-bold uppercase">Decision processed in 2.4s</div>
           </div>
         </div>
         <p className="font-black text-2xl md:text-4xl max-w-4xl leading-tight opacity-90 text-black">
@@ -186,24 +186,24 @@ export function HomePage() {
         <div className="max-w-6xl">
           <h3 className="text-xs md:text-sm font-black tracking-[0.3em] uppercase mb-16 md:mb-24 text-black/40">HOW IT WORKS</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-0 md:divide-x-[1.5px] divide-black border-y-[1.5px] border-black -mx-8 md:mx-0">
-             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
-               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">01</div>
-               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">CONNECT</h4>
-               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">LINK ACCOUNTS SECURELY.</p>
-               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Securely connect your financial data via encrypted channels. No credentials stored.</p>
-             </div>
-             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
-               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">02</div>
-               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">ANALYZE</h4>
-               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">AI DETECTS PATTERNS.</p>
-               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Our AI engine scans thousands of behavioral signals to build your unique trust profile.</p>
-             </div>
-             <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
-               <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">03</div>
-               <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">UNLOCK</h4>
-               <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">GET YOUR REAL SCORE.</p>
-               <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Instant decisioning based on current merit, unlocking fair credit access in seconds.</p>
-             </div>
+            <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+              <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">01</div>
+              <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">CONNECT</h4>
+              <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">LINK ACCOUNTS SECURELY.</p>
+              <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Securely connect your financial data via encrypted channels. No credentials stored.</p>
+            </div>
+            <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+              <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">02</div>
+              <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">ANALYZE</h4>
+              <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">AI DETECTS PATTERNS.</p>
+              <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Our AI engine scans thousands of behavioral signals to build your unique trust profile.</p>
+            </div>
+            <div className="px-8 md:px-10 py-12 md:py-16 hover:bg-gray-50 transition-colors">
+              <div className="text-4xl font-black text-blue-600 mb-6 font-mono tracking-tighter italic opacity-80 decoration-blue-600 underline underline-offset-8">03</div>
+              <h4 className="text-2xl md:text-3xl font-black tracking-tighter uppercase mb-4">UNLOCK</h4>
+              <p className="font-bold text-xs md:text-sm tracking-widest uppercase text-gray-500 mb-6">GET YOUR REAL SCORE.</p>
+              <p className="text-[10px] md:text-xs text-black/60 font-bold leading-relaxed">Instant decisioning based on current merit, unlocking fair credit access in seconds.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -223,12 +223,12 @@ export function HomePage() {
             </div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">BANK GRADE PROTECTION</div>
-           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ENCRYPTED DATA FLOW</div>
-           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ZERO KNOWLEDGE POLICY</div>
-           <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">REGULATORY COMPLIANCE</div>
+          <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">BANK GRADE PROTECTION</div>
+          <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ENCRYPTED DATA FLOW</div>
+          <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">ZERO KNOWLEDGE POLICY</div>
+          <div className="border-[1.5px] border-black p-6 flex items-center justify-center font-black text-[10px] md:text-xs uppercase text-black italic">REGULATORY COMPLIANCE</div>
         </div>
       </section>
 

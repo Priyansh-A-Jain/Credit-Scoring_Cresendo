@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 const loanApplicationSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
+  // Human-readable loan code (e.g., P1, H3)
+  loanCode: { type: String, index: true, unique: true, sparse: true },
+
   // Loan details
   loanType: {
     type: String,

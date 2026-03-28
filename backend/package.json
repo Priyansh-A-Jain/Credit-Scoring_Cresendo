@@ -15,6 +15,7 @@
     "smoke:ml": "node --env-file=.env scripts/smoke_ml_service.js",
     "smoke:phase4": "node --env-file=.env scripts/smoke_phase4_admin_flow.js",
     "smoke:phase5": "node --env-file=.env scripts/smoke_phase5_admin_actions.js",
+    "backfill:loanCodes": "node --env-file=.env scripts/backfillLoanCodes.js",
     "debug:card": "node --env-file=.env scripts/debug_applicant_card.js",
     "test:fetch": "node --env-file=.env scripts/testApplicantFetch.js",
     "test:ollama": "node --env-file=.env scripts/testOllamaGrounding.js",
@@ -49,6 +50,7 @@
     "mongoose": "^9.3.1",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.4",
-    "redis": "^5.11.0"
+    "redis": "^5.11.0",
+    "twilio": "^5.13.1"
   }
 }

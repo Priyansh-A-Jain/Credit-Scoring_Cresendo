@@ -16,6 +16,8 @@ interface LoanFormState {
   maritalStatus: string;
   familyMembersCount: string;
   childrenCount: string;
+  dateOfBirth: string;
+  age: string;
   // Personal documents
   identityFile: string | null;
   financialFile: string | null;

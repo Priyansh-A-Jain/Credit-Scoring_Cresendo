@@ -67,6 +67,7 @@ export function AdminDashboard() {
     { title: "Total Applications", value: dashboardData.totalApplications?.toString() || "0", icon: CreditCard, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-500/10", iconColor: "text-blue-400" },
     { title: "Approved", value: dashboardData.approvedLoans?.toString() || "0", icon: CheckCircle, color: "from-green-500 to-green-600", bgColor: "bg-green-500/10", iconColor: "text-green-400" },
     { title: "Rejected", value: dashboardData.rejectedLoans?.toString() || "0", icon: XCircle, color: "from-red-500 to-red-600", bgColor: "bg-red-500/10", iconColor: "text-red-400" },
+    { title: "Auto Rejected", value: dashboardData.autoRejectedLoans?.toString() || "0", icon: XCircle, color: "from-rose-500 to-rose-600", bgColor: "bg-rose-500/10", iconColor: "text-rose-400" },
     { title: "Pending", value: dashboardData.pendingLoans?.toString() || "0", icon: Clock, color: "from-yellow-500 to-yellow-600", bgColor: "bg-yellow-500/10", iconColor: "text-yellow-400" },
   ] : [];
 
@@ -126,7 +127,7 @@ export function AdminDashboard() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span></span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30"></span></span>
             </div>
             <nav className="hidden md:flex items-center gap-8 mt-1">
               <button onClick={() => navigate("/admin")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Dashboard</button>
@@ -134,6 +135,7 @@ export function AdminDashboard() {
               <button onClick={() => navigate("/admin/loans")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Loans</button>
               <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Audit Log</button>
               <button onClick={() => navigate("/admin/models")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Models</button>
+              <button onClick={() => navigate("/admin/copilot")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Chat</button>
             </nav>
             <Button
               onClick={() => {
@@ -172,7 +174,7 @@ export function AdminDashboard() {
               <h2 className="text-base md:text-lg font-black text-black uppercase tracking-[0.2em]">Application Status</h2>
               <div className="h-[1.5px] flex-1 bg-black/10"></div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {keyMetrics.map((stat, index) => (
                 <div
                   key={index}
@@ -187,7 +189,7 @@ export function AdminDashboard() {
                       <p className="text-4xl md:text-5xl font-black text-black tracking-tighter group-hover:text-blue-600 transition-colors duration-300">{stat.value}</p>
                     </div>
                     <div className="mt-1 flex-shrink-0">
-                      <stat.icon className="w-6 h-6 text-black/40 group-hover:text-blue-600 transition-colors duration-300" strokeWidth={2.5} />
+                      {/* <stat.icon className="w-6 h-6 text-black/40 group-hover:text-blue-600 transition-colors duration-300" strokeWidth={2.5} /> */}
                     </div>
                   </div>
                 </div>
@@ -215,9 +217,9 @@ export function AdminDashboard() {
                       <p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-[0.2em] mb-4">{stat.title}</p>
                       <p className="text-5xl md:text-7xl font-black text-black tracking-tighter group-hover:text-blue-600 transition-colors duration-300">{stat.value}</p>
                     </div>
-                    <div className="mt-2 flex-shrink-0 bg-blue-50 p-4 rounded-sm border border-blue-200 group-hover:border-blue-600 group-hover:bg-blue-100 transition-all duration-300">
+                    {/* <div className="mt-2 flex-shrink-0 bg-blue-50 p-4 rounded-sm border border-blue-200 group-hover:border-blue-600 group-hover:bg-blue-100 transition-all duration-300">
                       <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-black group-hover:text-blue-600 transition-colors duration-300" strokeWidth={2.5} />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               ))}
