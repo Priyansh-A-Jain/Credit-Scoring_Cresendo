@@ -64,7 +64,14 @@ export function AdminLoanApplications() {
             category: loan.loanType,
             loanAmount: loan.requestedAmount,
             tenure: loan.requestedTenure,
-            status: loan.status,
+            status: (() => {
+              const sl = String(loan.status || '').toLowerCase();
+              const score = Number(loan.aiAnalysis?.creditScore || userDetails.creditScore || 600);
+              if (score < 440 || sl === 'auto_rejected') return 'auto_rejected';
+              if (['approved', 'auto_approved', 'accepted', 'disbursed', 'closed'].includes(sl)) return 'approved';
+              if (['rejected', 'declined'].includes(sl)) return 'rejected';
+              return 'under_review';
+            })(),
             riskLevel: ((loan.aiAnalysis?.riskLevel || 'unknown') as string).charAt(0).toUpperCase() + ((loan.aiAnalysis?.riskLevel || 'unknown') as string).slice(1),
             riskScore: loan.aiAnalysis?.creditScore || 600,
             defaultProb: loan.features?.probabilityOfDefault ?? 0,
@@ -169,7 +176,14 @@ export function AdminLoanApplications() {
         category: freshLoan.loanType,
         loanAmount: freshLoan.requestedAmount,
         tenure: freshLoan.requestedTenure,
-        status: freshLoan.status,
+        status: (() => {
+          const sl = String(freshLoan.status || '').toLowerCase();
+          const score = Number(freshLoan.aiAnalysis?.creditScore || userDetails.creditScore || 600);
+          if (score < 440 || sl === 'auto_rejected') return 'auto_rejected';
+          if (['approved', 'auto_approved', 'accepted', 'disbursed', 'closed'].includes(sl)) return 'approved';
+          if (['rejected', 'declined'].includes(sl)) return 'rejected';
+          return 'under_review';
+        })(),
         riskLevel: ((freshLoan.aiAnalysis?.riskLevel || 'unknown') as string).charAt(0).toUpperCase() + ((freshLoan.aiAnalysis?.riskLevel || 'unknown') as string).slice(1),
         riskScore: freshLoan.aiAnalysis?.creditScore || 600,
         defaultProb: freshLoan.features?.probabilityOfDefault ?? 0,
@@ -211,7 +225,8 @@ export function AdminLoanApplications() {
       const statusMap: { [key: string]: string } = {
         'Pending': 'under_review',
         'Approved': 'approved',
-        'Rejected': 'rejected'
+        'Rejected': 'rejected',
+        'Auto Rejected': 'auto_rejected'
       };
       return statusMap[filterStatus] === app.status &&
         (app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -225,7 +240,8 @@ export function AdminLoanApplications() {
       'All': '',
       'Pending': 'under_review',
       'Approved': 'approved',
-      'Rejected': 'rejected'
+      'Rejected': 'rejected',
+      'Auto Rejected': 'auto_rejected'
     };
 
     if (status === "All") return loans.length;
@@ -402,7 +418,7 @@ export function AdminLoanApplications() {
 
             {/* Filter Tabs - Single Row */}
             <div className="flex gap-4 items-center flex-wrap flex-shrink-0 pt-2">
-              {["All", "Pending", "Approved", "Rejected"].map((status) => (
+              {["All", "Pending", "Approved", "Rejected", "Auto Rejected"].map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
@@ -461,14 +477,15 @@ export function AdminLoanApplications() {
                           ? 'bg-green-50 border-green-300 text-green-700'
                           : loanApp.status === 'under_review'
                             ? 'bg-yellow-50 border-yellow-300 text-yellow-700'
-                            : loanApp.status === 'rejected'
+                            : loanApp.status === 'rejected' || loanApp.status === 'auto_rejected'
                               ? 'bg-red-50 border-red-300 text-red-600'
                               : 'bg-gray-50 border-gray-300 text-gray-600'
                           }`}>
                           {loanApp.status === 'under_review' ? 'PENDING' :
                             loanApp.status === 'approved' ? 'APPROVED' :
-                              loanApp.status === 'rejected' ? 'REJECTED' :
-                                loanApp.status.toUpperCase()}
+                              loanApp.status === 'auto_rejected' ? 'AUTO REJECTED' :
+                                loanApp.status === 'rejected' ? 'REJECTED' :
+                                  loanApp.status.toUpperCase()}
                         </span>
                       </td>
                     </tr>
@@ -651,14 +668,16 @@ export function AdminLoanApplications() {
 
 
               {/* Action Buttons */}
-              <div className="flex gap-4 pt-6 mt-auto">
-                <Button onClick={handleApprove} className="flex-1 bg-green-400 hover:bg-green-500 text-black border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
-                  Approve Application
-                </Button>
-                <Button onClick={handleReject} className="flex-1 bg-red-500 hover:bg-red-600 text-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
-                  Reject Application
-                </Button>
-              </div>
+              {loan.status === 'under_review' && (
+                <div className="flex gap-4 pt-6 mt-auto">
+                  <Button onClick={handleApprove} className="flex-1 bg-green-400 hover:bg-green-500 text-black border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
+                    Approve Application
+                  </Button>
+                  <Button onClick={handleReject} className="flex-1 bg-red-500 hover:bg-red-600 text-white border-[1.5px] border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-black uppercase tracking-[0.15em] py-6 text-sm">
+                    Reject Application
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

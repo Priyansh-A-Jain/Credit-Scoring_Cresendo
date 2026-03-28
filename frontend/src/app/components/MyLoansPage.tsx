@@ -406,6 +406,78 @@ export function MyLoansPage() {
                   </div>
                 )}
 
+                {/* AI Risk Score */}
+                {(selectedLoan.riskLevel || selectedLoan.creditScore) && (
+                  <div className="flex flex-col gap-4 bg-white border-[1.5px] border-black p-5 shadow-[4px_4px_0_0_rgba(0,0,0,1)] group hover:border-blue-600 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase text-slate-500 tracking-widest">AI Risk Score</span>
+                      <p className={`text-xs font-black uppercase px-3 py-1 border-[1.5px] border-black ${selectedLoan.riskLevel?.toLowerCase() === 'low' ? 'bg-green-400 text-black' :
+                        selectedLoan.riskLevel?.toLowerCase() === 'medium' ? 'bg-yellow-400 text-black' :
+                          'bg-red-500 text-white'
+                        }`}>
+                        {selectedLoan.riskLevel || 'UNKNOWN'} RISK
+                      </p>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-6xl font-black text-black tracking-tighter leading-none group-hover:text-blue-600 transition-colors">{selectedLoan.creditScore || "N/A"}</p>
+                      </div>
+                      {selectedLoan.features?.probabilityOfDefault != null && (
+                        <div className="text-right">
+                          <p className="text-3xl font-black text-black tracking-tighter leading-none">{(selectedLoan.features.probabilityOfDefault * 100).toFixed(1)}<span className="text-xl">%</span></p>
+                          <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Default Prob</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Loan AI Details */}
+                <div className="bg-white p-5 border-[1.5px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4 border-b-[1.5px] border-black pb-2">Loan Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                      <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Requested</span>
+                      <span className="text-lg text-black font-black leading-none">₹{selectedLoan.amount?.toLocaleString() || "0"}</span>
+                    </div>
+                    {selectedLoan.status !== "Rejected" && (
+                      <>
+                        <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                          <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Eligible</span>
+                          <span className="text-xl text-blue-600 font-black leading-none">₹{selectedLoan.eligibleAmount?.toLocaleString() || "N/A"}</span>
+                        </div>
+                        <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                          <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Suggested Rate</span>
+                          <span className="text-lg text-black font-black leading-none">{selectedLoan.interestRate}% P.A.</span>
+                        </div>
+                        <div className="flex justify-between items-end border-b border-black/10 pb-2">
+                          <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Tenure</span>
+                          <span className="text-lg text-black font-black leading-none">{selectedLoan.tenure} MO</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Submitted Details */}
+                <div className="bg-white p-5 border-[1.5px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <h3 className="text-xs font-black text-black uppercase tracking-[0.2em] mb-4 border-b-[1.5px] border-black pb-2">Submitted Details</h3>
+                   <div className="space-y-3">
+                    <div className="flex justify-between items-center border-[1.5px] border-black bg-slate-50 px-3 py-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loan Type</span>
+                      <span className="text-xs font-black text-black uppercase tracking-wider">{selectedLoan.loanType}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-[1.5px] border-black bg-slate-50 px-3 py-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">App Date</span>
+                      <span className="text-xs font-black text-black uppercase tracking-wider">{selectedLoan.applicationDate}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-[1.5px] border-black bg-slate-50 px-3 py-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Purpose</span>
+                      <span className="text-xs font-black text-black uppercase tracking-wider text-right pl-4 truncate max-w-[50%]">{selectedLoan.purpose || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Dynamic Configuration per Status */}
                 
                 {/* 1. ONGOING / APPROVED */}

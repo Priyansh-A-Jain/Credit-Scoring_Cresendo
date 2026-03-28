@@ -133,6 +133,9 @@ export function ApplyLoanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [disableAutoSave, setDisableAutoSave] = useState(false);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [assetsConfirmed, setAssetsConfirmed] = useState(false);
+  const [finalConfirmed, setFinalConfirmed] = useState(false);
 
   const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -472,7 +475,7 @@ export function ApplyLoanPage() {
     // Validate required fields first
     const validationErrors = validateRequiredFields();
     if (validationErrors.length > 0) {
-      setSubmitError(validationErrors.join("\n"));
+      setSubmitError(validationErrors.join(", "));
       console.error('Validation errors:', validationErrors);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -619,8 +622,48 @@ export function ApplyLoanPage() {
     }
   };
 
-  const nextStep = () => setStep(prev => Math.min(prev + 1, 4));
-  const prevStep = () => setStep(prev => Math.max(prev - 1, 0));
+  const nextStep = () => {
+    let errors: string[] = [];
+    if (step === 1) {
+      if (!dateOfBirth) errors.push("- Date of Birth");
+      if (!gender) errors.push("- Gender");
+      if (!maritalStatus) errors.push("- Marital Status");
+      if (!incomeRange) errors.push("- Income Range");
+    } else if (step === 2) {
+      if (loanType === 'education') {
+        if (!courseName) errors.push("- Course Name");
+        if (!university) errors.push("- University");
+        if (!courseDuration) errors.push("- Course Duration");
+      } else {
+        if (loanType === 'business' && !businessType) errors.push("- Business Enterprise Type");
+        if (loanType !== 'business' && !occupation) errors.push("- Occupation Status");
+      }
+    } else if (step === 3 && loanType !== 'education') {
+      if (loanType === 'home') {
+        if (!homeLocation) errors.push("- Property Location");
+        if (!bhk) errors.push("- Configuration (BHK)");
+        if (!homeArea) errors.push("- Carpet Area");
+        if (!estimatedPrice) errors.push("- Estimated Price");
+      } else if (loanType === 'auto') {
+        if (!autoType) errors.push("- Automobile Type");
+        if (!autoModel) errors.push("- Model & Brand");
+        if (!autoPrice) errors.push("- Estimated Price");
+      }
+      if (!assetsConfirmed) errors.push("- Please confirm the assets are correct");
+      if (!finalConfirmed) errors.push("- Please confirm the information accuracy");
+    }
+    
+    if (errors.length > 0) {
+      setStepError(errors.map(e => e.replace("- ", "")).join(", "));
+      return;
+    }
+    setStepError(null);
+    setStep(prev => Math.min(prev + 1, 4));
+  };
+  const prevStep = () => {
+    setStepError(null);
+    setStep(prev => Math.max(prev - 1, 0));
+  };
 
   return (
     <div className="apply-loan-brutal min-h-screen bg-white flex flex-col text-black font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden">
@@ -1039,6 +1082,15 @@ export function ApplyLoanPage() {
                   </CardContent>
                 </Card>
 
+                {stepError && (
+                  <div className="bg-red-50 border-[1.5px] border-black p-4 flex items-start gap-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6 animate-in fade-in slide-in-from-bottom-2">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-black text-red-600 uppercase tracking-widest">Missing Details</h4>
+                      <p className="text-xs font-bold text-red-700 mt-1 uppercase tracking-wide leading-relaxed">PLEASE COMPLETE: {stepError}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
                   <Button type="submit" className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
@@ -1182,6 +1234,15 @@ export function ApplyLoanPage() {
                   </CardContent>
                 </Card>
 
+                {stepError && (
+                  <div className="bg-red-50 border-[1.5px] border-black p-4 flex items-start gap-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6 animate-in fade-in slide-in-from-bottom-2">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-black text-red-600 uppercase tracking-widest">Missing Details</h4>
+                      <p className="text-xs font-bold text-red-700 mt-1 uppercase tracking-wide leading-relaxed">PLEASE COMPLETE: {stepError}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
                   <Button onClick={nextStep} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
@@ -1650,9 +1711,15 @@ export function ApplyLoanPage() {
                     </div>
                   )}
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 mb-2">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 mb-2 space-y-3">
                     <div className="flex items-start gap-4">
-                      <input type="checkbox" id="final-confirm" className="mt-0.5 w-5 h-5 rounded border-slate-400 bg-white appearance-none checked:bg-blue-600 checked:border-blue-600 relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[7px] after:top-[3px] after:w-[6px] after:h-[12px] after:border-solid after:border-white after:border-r-[2.5px] after:border-b-[2.5px] after:rotate-45 cursor-pointer flex-shrink-0" />
+                      <input type="checkbox" id="assets-confirm" checked={assetsConfirmed} onChange={(e) => setAssetsConfirmed(e.target.checked)} className="mt-0.5 w-5 h-5 rounded border-slate-400 bg-white appearance-none checked:bg-blue-600 checked:border-blue-600 relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[7px] after:top-[3px] after:w-[6px] after:h-[12px] after:border-solid after:border-white after:border-r-[2.5px] after:border-b-[2.5px] after:rotate-45 cursor-pointer flex-shrink-0" />
+                      <Label htmlFor="assets-confirm" className="text-sm text-slate-900 font-medium cursor-pointer leading-tight">
+                        I confirm that the physical or financial assets provided are correct.
+                      </Label>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <input type="checkbox" id="final-confirm" checked={finalConfirmed} onChange={(e) => setFinalConfirmed(e.target.checked)} className="mt-0.5 w-5 h-5 rounded border-slate-400 bg-white appearance-none checked:bg-blue-600 checked:border-blue-600 relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[7px] after:top-[3px] after:w-[6px] after:h-[12px] after:border-solid after:border-white after:border-r-[2.5px] after:border-b-[2.5px] after:rotate-45 cursor-pointer flex-shrink-0" />
                       <Label htmlFor="final-confirm" className="text-sm text-slate-900 font-medium cursor-pointer leading-tight">
                         I confirm that the information provided is true to the best of my knowledge and I authorize Barclays to verify these details.
                       </Label>
@@ -1663,6 +1730,15 @@ export function ApplyLoanPage() {
               </CardContent>
             </Card>
 
+            {stepError && (
+              <div className="bg-red-50 border-[1.5px] border-black p-4 flex items-start gap-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6 animate-in fade-in slide-in-from-bottom-2">
+                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-black text-red-600 uppercase tracking-widest">Missing Details</h4>
+                  <p className="text-xs font-bold text-red-700 mt-1 uppercase tracking-wide leading-relaxed">PLEASE COMPLETE: {stepError}</p>
+                </div>
+              </div>
+            )}
             <div className="flex justify-between">
               <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
               <Button type="submit" className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">REVIEW APPLICATION &rarr;</Button>
@@ -1762,7 +1838,7 @@ export function ApplyLoanPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5"><Label className="text-slate-600 text-xs">Full Name</Label><Input value={loadingUserInfo ? "Loading..." : userInfo.fullName} readOnly className="bg-slate-100 border-slate-300 text-slate-900" /></div>
                         <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Date of Birth</Label>
+                          <Label className="text-slate-600 text-xs">Date of Birth <span className="text-red-500">*</span></Label>
                           <Input
                             type="text"
                             placeholder="DD-MM-YYYY"
@@ -1795,7 +1871,7 @@ export function ApplyLoanPage() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Gender</Label>
+                          <Label className="text-slate-600 text-xs">Gender <span className="text-red-500">*</span></Label>
                           <Select value={gender} onValueChange={setGender}>
                             <SelectTrigger className="bg-white border-slate-300 text-slate-900 w-full">
                               <SelectValue placeholder="Select gender" />
@@ -1809,7 +1885,7 @@ export function ApplyLoanPage() {
                           </Select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-slate-600 text-xs">Marital Status</Label>
+                          <Label className="text-slate-600 text-xs">Marital Status <span className="text-red-500">*</span></Label>
                           <Select value={maritalStatus} onValueChange={setMaritalStatus}>
                             <SelectTrigger className="bg-white border-slate-300 text-slate-900 w-full">
                               <SelectValue placeholder="Select status" />
@@ -1863,7 +1939,7 @@ export function ApplyLoanPage() {
 
                     <div className="space-y-4 pt-4 border-t border-slate-200">
                       <div className="space-y-1.5">
-                        <Label className="text-slate-600 text-xs">Family Income Range</Label>
+                        <Label className="text-slate-600 text-xs">Family Income Range <span className="text-red-500">*</span></Label>
                         <Select value={incomeRange} onValueChange={setIncomeRange}>
                           <SelectTrigger className="bg-white border-slate-300 text-slate-900 w-full"><SelectValue placeholder="Select income range" /></SelectTrigger>
                           <SelectContent className="bg-white border-slate-300 text-slate-900">
@@ -1904,6 +1980,15 @@ export function ApplyLoanPage() {
                   </CardContent>
                 </Card>
 
+                {stepError && (
+                  <div className="bg-red-50 border-[1.5px] border-black p-4 flex items-start gap-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6 animate-in fade-in slide-in-from-bottom-2">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-black text-red-600 uppercase tracking-widest">Missing Details</h4>
+                      <p className="text-xs font-bold text-red-700 mt-1 uppercase tracking-wide leading-relaxed">PLEASE COMPLETE: {stepError}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
                   <Button type="submit" disabled={false} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">CONTINUE &rarr;</Button>
@@ -2026,6 +2111,15 @@ export function ApplyLoanPage() {
                   </CardContent>
                 </Card>
 
+                {stepError && (
+                  <div className="bg-red-50 border-[1.5px] border-black p-4 flex items-start gap-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6 animate-in fade-in slide-in-from-bottom-2">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-black text-red-600 uppercase tracking-widest">Missing Details</h4>
+                      <p className="text-xs font-bold text-red-700 mt-1 uppercase tracking-wide leading-relaxed">PLEASE COMPLETE: {stepError}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={prevStep} className="border-[1.5px] border-black text-black hover:bg-gray-100 rounded-none font-black text-xs uppercase tracking-[0.15em] px-6 py-3">BACK</Button>
                   <Button type="submit" disabled={false} className="bg-black text-white hover:bg-black/80 rounded-none border-[1.5px] border-transparent font-black text-xs uppercase tracking-[0.15em] px-6 py-3 transition-all">REVIEW & SUBMIT &rarr;</Button>
@@ -2123,7 +2217,7 @@ export function ApplyLoanPage() {
                   <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <h4 className="text-sm font-semibold text-red-600">Submission Error</h4>
-                    <p className="text-xs text-red-700 mt-0.5">{submitError}</p>
+                    <p className="text-xs text-red-700 mt-0.5 whitespace-pre-wrap">{submitError}</p>
                   </div>
                 </CardContent>
               </Card>
