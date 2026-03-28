@@ -426,7 +426,7 @@ export const login = async (req, res) => {
     const { phone, email, password } = req.body;
 
     console.log(
-      `🔐 Login attempt: phone=${phone || "N/A"}, email=${email || "N/A"}`
+      `Login attempt: phone=${phone || "N/A"}, email=${email || "N/A"}`
     );
 
     if ((!phone && !email) || !password) {
@@ -543,14 +543,11 @@ export const login = async (req, res) => {
     }
 
     console.log(`Sending login OTP to phone: ${user.phone}`);
-    const phoneOtpResult = await sendOTP(user.phone);
+    await sendOTP(user.phone);
     console.log(`Login OTP sent successfully to phone: ${user.phone}`);
 
     return res.status(200).json({
-      message: "OTP sent to email, please verify",
-      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
-        ? { debugEmailOtp: emailOtpResult.otp }
-        : {}),
+      message: "OTP sent to phone, please verify",
     });
   } catch (error) {
     console.error("Login error:", error);

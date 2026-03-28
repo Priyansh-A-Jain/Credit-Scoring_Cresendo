@@ -8,17 +8,27 @@ import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services/apiClient";
 
-const TIMELINE_STAGES = [
-  "Applied", "Under Review", "Approved", "Disbursed", "Ongoing", "Completed"
+const FILTER_OPTIONS = [
+  "All",
+  "Approved",
+  "Rejected",
+  "Auto Rejected",
+  "Under Review",
 ];
 
-const getStatusStageIndex = (status: string) => {
-  switch (status) {
-    case "Approved": return 2;
-    case "Ongoing": return 4;
-    case "Completed": return 5;
-    default: return 0; // Applied / Under Review
-  }
+const FILTER_STATUS_MAP: Record<string, string[]> = {
+  Approved: [
+    "approved",
+    "auto_approved",
+    "accepted",
+    "disbursed",
+    "ongoing",
+    "completed",
+    "closed",
+  ],
+  Rejected: ["rejected", "declined"],
+  "Auto Rejected": ["auto_rejected"],
+  "Under Review": ["pending", "under_review", "review", "hold", "processing"],
 };
 
 export function MyLoansPage() {
@@ -69,11 +79,14 @@ export function MyLoansPage() {
         
         const formattedLoans = loansArray.map((loan: any) => {
           console.log(`Processing loan: ${loan._id} - Status: ${loan.status}`);
+          const backendStatus = loan.status;
+          const displayStatus = loan.displayStatus || formatStatus(backendStatus);
           return {
+            ...loan,
             id: loan._id,
             loanId: loan._id,
             amount: loan.requestedAmount,
-            status: formatStatus(loan.status),
+            status: displayStatus,
             loanType: loan.loanType,
             riskLevel: loan.aiAnalysis?.riskLevel || 'medium',
             interestRate: loan.aiAnalysis?.suggestedInterestRate || 12.5,
@@ -83,8 +96,8 @@ export function MyLoansPage() {
             tenure: loan.requestedTenure,
             category: normalizeLoanType(loan.loanType),
             submittedAt: loan.submittedAt,
-            backendStatus: loan.status,
-            ...loan
+            backendStatus,
+            displayStatus,
           };
         });
 
@@ -131,18 +144,37 @@ export function MyLoansPage() {
   // Format backend status to frontend display format
   const formatStatus = (status: string): string => {
     const statusMap: { [key: string]: string } = {
-      'pending': 'Pending',
-      'auto_approved': 'Approved',
-      'under_review': 'Under Review',
-      'auto_rejected': 'Rejected',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'accepted': 'Accepted',
-      'declined': 'Declined',
-      'disbursed': 'Disbursed',
-      'closed': 'Closed'
+      pending: "Under Review",
+      under_review: "Under Review",
+      review: "Under Review",
+      hold: "Under Review",
+      processing: "Under Review",
+      auto_approved: "Approved",
+      approved: "Approved",
+      accepted: "Approved",
+      disbursed: "Approved",
+      ongoing: "Approved",
+      completed: "Approved",
+      closed: "Approved",
+      auto_rejected: "Auto Rejected",
+      rejected: "Rejected",
+      declined: "Rejected",
     };
-    return statusMap[status] || status;
+
+    const normalized = String(status || "").toLowerCase();
+    if (statusMap[normalized]) {
+      return statusMap[normalized];
+    }
+
+    if (!status) {
+      return "Under Review";
+    }
+
+    return status
+      .toLowerCase()
+      .split(/[_\s]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   // Normalize loan type for display
@@ -190,11 +222,14 @@ export function MyLoansPage() {
     // Then fetch fresh details by ID in background
     const freshLoan = await fetchLoanById(loan.id);
     if (freshLoan) {
+      const backendStatus = freshLoan.status;
+      const displayStatus = freshLoan.displayStatus || formatStatus(backendStatus);
       const formattedLoan = {
+        ...freshLoan,
         id: freshLoan._id,
         loanId: freshLoan._id,
         amount: freshLoan.requestedAmount,
-        status: formatStatus(freshLoan.status),
+        status: displayStatus,
         loanType: freshLoan.loanType,
         riskLevel: freshLoan.aiAnalysis?.riskLevel || 'medium',
         interestRate: freshLoan.aiAnalysis?.suggestedInterestRate || 12.5,
@@ -204,8 +239,8 @@ export function MyLoansPage() {
         tenure: freshLoan.requestedTenure,
         category: normalizeLoanType(freshLoan.loanType),
         submittedAt: freshLoan.submittedAt,
-        backendStatus: freshLoan.status,
-        ...freshLoan
+        backendStatus,
+        displayStatus,
       };
       // Update with fresh data
       setSelectedLoan(formattedLoan);
@@ -213,17 +248,35 @@ export function MyLoansPage() {
     }
   };
 
-  const filteredLoans = filter === "All" 
-    ? loans 
-    : loans.filter(loan => loan.status === filter);
+  const filteredLoans = filter === "All"
+    ? loans
+    : loans.filter((loan) => {
+        const allowedStatuses = FILTER_STATUS_MAP[filter] || [];
+        if (!allowedStatuses.length) {
+          return true;
+        }
+        const normalizedBackendStatus = String(loan.backendStatus || loan.status || "").toLowerCase();
+        if (allowedStatuses.includes(normalizedBackendStatus)) {
+          return true;
+        }
+        return loan.status === filter;
+      });
 
     const getStatusColor = (status: string) => {
     switch (status) {
-      case "Approved": return "bg-green-400 text-black";
-      case "Rejected": return "bg-red-400 text-black";
-      case "Ongoing": return "bg-blue-400 text-black";
-      case "Completed": return "bg-white text-black";
-      default: return "bg-yellow-400 text-black";
+      case "Approved":
+        return "bg-green-400 text-black";
+      case "Rejected":
+      case "Auto Rejected":
+        return "bg-red-400 text-black";
+      case "Under Review":
+        return "bg-yellow-300 text-black";
+      case "Ongoing":
+        return "bg-blue-400 text-black";
+      case "Completed":
+        return "bg-white text-black";
+      default:
+        return "bg-slate-100 text-black";
     }
   };
 
@@ -276,7 +329,7 @@ export function MyLoansPage() {
         {/* Filters */}
         {/* Filters */}
         <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {["All", "Approved", "Ongoing", "Completed", "Rejected"].map((btn) => (
+          {FILTER_OPTIONS.map((btn) => (
             <button
               key={btn}
               onClick={() => setFilter(btn)}
@@ -372,40 +425,6 @@ export function MyLoansPage() {
                   </span>
                 </div>
 
-                {/* TIMELINE TIMELINE */}
-                {selectedLoan.status !== "Rejected" && (
-                  <div className="border-[1.5px] border-black bg-white rounded-none p-6 space-y-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                    <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em]">STAGE TIMELINE</h4>
-                    <div className="relative pt-2">
-                      <div className="absolute top-4 left-0 right-0 h-[3px] bg-black/10" />
-                      <div 
-                        className="absolute top-4 left-0 h-[3px] bg-blue-600 transition-all duration-1000" 
-                        style={{ width: `${(getStatusStageIndex(selectedLoan.status) / (TIMELINE_STAGES.length - 1)) * 100}%` }}
-                      />
-                      <div className="flex justify-between relative z-10">
-                        {TIMELINE_STAGES.map((stage, idx) => {
-                          const currentStageIdx = getStatusStageIndex(selectedLoan.status);
-                          const isCompleted = idx <= currentStageIdx;
-                          const isCurrent = idx === currentStageIdx;
-
-                          return (
-                            <div key={idx} className="flex flex-col items-center">
-                              <div className={`w-4 h-4 rounded-none flex items-center justify-center transition-all border-[1.5px] ${
-                                isCompleted 
-                                  ? "bg-blue-600 border-blue-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)]" 
-                                  : "bg-white border-black/20"
-                              } ${isCurrent ? "border-black bg-blue-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)] scale-125" : ""}`} />
-                              <span className={`text-[8px] mt-3 font-black tracking-wider uppercase ${isCurrent ? "text-blue-600" : isCompleted ? "text-black" : "text-black/30"}`}>
-                                {stage}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* AI Risk Score */}
                 {(selectedLoan.riskLevel || selectedLoan.creditScore) && (
                   <div className="flex flex-col gap-4 bg-white border-[1.5px] border-black p-5 shadow-[4px_4px_0_0_rgba(0,0,0,1)] group hover:border-blue-600 transition-colors">
@@ -440,7 +459,7 @@ export function MyLoansPage() {
                       <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Requested</span>
                       <span className="text-lg text-black font-black leading-none">₹{selectedLoan.amount?.toLocaleString() || "0"}</span>
                     </div>
-                    {selectedLoan.status !== "Rejected" && (
+                    {selectedLoan.status !== "Rejected" && selectedLoan.status !== "Auto Rejected" && (
                       <>
                         <div className="flex justify-between items-end border-b border-black/10 pb-2">
                           <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Eligible</span>
@@ -538,13 +557,13 @@ export function MyLoansPage() {
                 )}
 
                 {/* 2. REJECTED */}
-                {selectedLoan.status === "Rejected" && (
+                {(selectedLoan.status === "Rejected" || selectedLoan.status === "Auto Rejected") && (
                   <div className="space-y-6">
                     <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-4">
                       <Ban className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="text-base font-bold text-red-700">Application Rejected</h4>
-                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">Reason: {selectedLoan.rejectionReason}</p>
+                        <h4 className="text-base font-bold text-red-700">{selectedLoan.status === "Auto Rejected" ? "Automatically Rejected" : "Application Rejected"}</h4>
+                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">Reason: {selectedLoan.rejectionReason || "No reason provided"}</p>
                       </div>
                     </div>
                     

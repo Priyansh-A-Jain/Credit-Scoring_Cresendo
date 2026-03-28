@@ -30,8 +30,9 @@ export function AdminLoanApplications() {
 
   const STATUS_GROUPS: Record<string, string[]> = {
     Pending: ["under_review", "pending"],
-    Approved: ["approved", "auto_approved", "accepted", "disbursed"],
-    Rejected: ["rejected", "auto_rejected", "declined"],
+    Approved: ["approved", "auto_approved", "accepted", "disbursed", "closed"],
+    Rejected: ["rejected", "declined"],
+    "Auto Rejected": ["auto_rejected"],
   };
 
   const matchesFilterStatus = (status: string, tab: string) => {
@@ -41,16 +42,28 @@ export function AdminLoanApplications() {
   };
 
   const getStatusBadgeClass = (status: string) => {
-    if (STATUS_GROUPS.Approved.includes(status)) return "bg-green-500/20 text-green-400";
-    if (STATUS_GROUPS.Pending.includes(status)) return "bg-yellow-500/20 text-yellow-400";
-    if (STATUS_GROUPS.Rejected.includes(status)) return "bg-red-500/20 text-red-400";
+    const normalized = String(status || "").toLowerCase();
+    if (STATUS_GROUPS["Auto Rejected"].includes(normalized)) {
+      return "bg-red-600/20 text-red-500";
+    }
+    if (STATUS_GROUPS.Rejected.includes(normalized)) {
+      return "bg-red-500/20 text-red-400";
+    }
+    if (STATUS_GROUPS.Approved.includes(normalized)) {
+      return "bg-green-500/20 text-green-400";
+    }
+    if (STATUS_GROUPS.Pending.includes(normalized)) {
+      return "bg-yellow-500/20 text-yellow-500";
+    }
     return "bg-gray-500/20 text-gray-400";
   };
 
   const getDisplayStatus = (status: string) => {
-    if (STATUS_GROUPS.Pending.includes(status)) return "Pending";
-    if (STATUS_GROUPS.Approved.includes(status)) return "Approved";
-    if (STATUS_GROUPS.Rejected.includes(status)) return "Rejected";
+    const normalized = String(status || "").toLowerCase();
+    if (STATUS_GROUPS["Auto Rejected"].includes(normalized)) return "Auto Rejected";
+    if (STATUS_GROUPS.Rejected.includes(normalized)) return "Rejected";
+    if (STATUS_GROUPS.Approved.includes(normalized)) return "Approved";
+    if (STATUS_GROUPS.Pending.includes(normalized)) return "Pending";
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown";
   };
 
@@ -78,16 +91,32 @@ export function AdminLoanApplications() {
           const userName = userDetails.fullName || userDetails.name || 'Unknown User';
           const userPhone = userDetails.phone || 'N/A';
           const userEmail = userDetails.email || 'N/A';
-          const creditScore = userDetails.creditScore || 'N/A';
+          // Use the credit score captured at the time of this loan's AI analysis
+          const creditScore =
+            loan.aiAnalysis?.creditScore ?? userDetails.creditScore ?? 'N/A';
+
+          const loanType = loan.loanType || "";
+          const typePrefixMap: Record<string, string> = {
+            personal: "P",
+            home: "H",
+            auto: "A",
+            education: "E",
+            business: "B",
+            credit_card: "C",
+          };
+          const prefix = typePrefixMap[loanType] || "X";
+          const fallbackCode = `${prefix}${String(loan._id || "").slice(-4).toUpperCase()}`;
+          const loanCode = loan.loanCode || fallbackCode;
 
           return {
             id: loan._id,
+            loanCode,
             name: userName,
             phone: userPhone,
             email: userEmail,
             creditScore: creditScore,
             userId: userDetails._id,
-            category: loan.loanType,
+            category: loanType,
             loanAmount: loan.requestedAmount,
             tenure: loan.requestedTenure,
             status: (() => {
@@ -192,14 +221,29 @@ export function AdminLoanApplications() {
     if (freshLoan) {
       // Update the loan in the list with fresh data
       const userDetails = freshLoan.userId || {};
+      const loanType = freshLoan.loanType || "";
+      const typePrefixMap: Record<string, string> = {
+        personal: "P",
+        home: "H",
+        auto: "A",
+        education: "E",
+        business: "B",
+        credit_card: "C",
+      };
+      const prefix = typePrefixMap[loanType] || "X";
+      const fallbackCode = `${prefix}${String(freshLoan._id || "").slice(-4).toUpperCase()}`;
+      const loanCode = freshLoan.loanCode || fallbackCode;
       const updatedLoan = {
         id: freshLoan._id,
+        loanCode,
         name: userDetails.fullName || userDetails.name || 'Unknown User',
         phone: userDetails.phone || 'N/A',
         email: userDetails.email || 'N/A',
-        creditScore: userDetails.creditScore || 'N/A',
+        // Keep this in sync with the list mapping: score at time of loan
+        creditScore:
+          freshLoan.aiAnalysis?.creditScore ?? userDetails.creditScore ?? 'N/A',
         userId: userDetails._id,
-        category: freshLoan.loanType,
+        category: loanType,
         loanAmount: freshLoan.requestedAmount,
         tenure: freshLoan.requestedTenure,
         status: (() => {
@@ -242,32 +286,20 @@ export function AdminLoanApplications() {
     }
   };
 
-  const filteredApplications = filterStatus === "All"
-    ? loans.filter(app =>
-      app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.category.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : loans.filter(app => {
-      const statusMap: { [key: string]: string } = {
-        'Pending': 'under_review',
-        'Approved': 'approved',
-        'Rejected': 'rejected'
-      };
-      return statusMap[filterStatus] === app.status &&
-        (app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          app.category.toLowerCase().includes(searchTerm.toLowerCase()))
-    });
+  const filteredApplications = loans.filter(app => {
+    const matchesTab = filterStatus === "All" || matchesFilterStatus(app.status, filterStatus);
+    if (!matchesTab) return false;
+    const normalizedSearch = searchTerm.toLowerCase();
+    if (!normalizedSearch) return true;
+    const code = (app.loanCode || "").toLowerCase();
+    return app.name.toLowerCase().includes(normalizedSearch) ||
+      app.category.toLowerCase().includes(normalizedSearch) ||
+      code.includes(normalizedSearch);
+  });
 
   const loan = selectedLoan !== null ? loans[selectedLoan] : null;
 
   const getStatusCount = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'All': '',
-      'Pending': 'under_review',
-      'Approved': 'approved',
-      'Rejected': 'rejected'
-    };
-
     if (status === "All") return loans.length;
     return loans.filter(app => matchesFilterStatus(app.status, status)).length;
   };
@@ -296,6 +328,94 @@ export function AdminLoanApplications() {
       default:
         return "text-gray-400 font-bold text-2xl";
     }
+  };
+
+  const buildExplainabilityNarrative = (loan: any, explainability: any) => {
+    if (!loan || !explainability) return null;
+
+    // If backend already provided an LLM-generated narrative, use it directly.
+    if (explainability.llmNarrative) {
+      const n = explainability.llmNarrative;
+      if (Array.isArray(n.key_factors) && typeof n.detailed_explanation === "string") {
+        return {
+          keyFactors: n.key_factors,
+          detailedExplanation: n.detailed_explanation,
+        };
+      }
+    }
+
+    const factors: string[] = [];
+
+    const pd = typeof explainability.probabilityOfDefault === "number"
+      ? explainability.probabilityOfDefault
+      : null;
+    const flags: string[] = Array.isArray(explainability.flags)
+      ? explainability.flags
+      : [];
+
+    const rawBorrowerType: string | undefined =
+      loan.rawLoan?.features?.borrowerType ||
+      (Array.isArray(explainability.explanationSummary)
+        ? (explainability.explanationSummary.find((item: string) =>
+            typeof item === "string" && item.includes("borrowerType=")) as string | undefined)
+        : undefined);
+
+    let borrowerLabel: string | null = null;
+    if (rawBorrowerType) {
+      const match = rawBorrowerType.match(/borrowerType=([a-zA-Z0-9_]+)/);
+      const code = (match?.[1] || rawBorrowerType).toLowerCase();
+      if (code === "low_income_salaried") {
+        borrowerLabel = "low-income salaried individual";
+      } else if (code === "salaried") {
+        borrowerLabel = "salaried individual";
+      } else if (code === "self_employed") {
+        borrowerLabel = "self-employed borrower";
+      }
+    }
+
+    if (borrowerLabel) {
+      factors.push(
+        `The applicant appears to be a ${borrowerLabel}, which generally leaves limited surplus cash each month after regular living expenses.`
+      );
+    }
+
+    if (loan.loanAmount) {
+      factors.push(
+        "The requested loan amount is sizeable for this income segment, increasing the monthly repayment burden relative to earnings."
+      );
+    }
+
+    if (pd !== null) {
+      factors.push(
+        "Repayment capacity looks tight, so even modest income disruptions or unexpected expenses could make it difficult to keep up with EMIs."
+      );
+    }
+
+    if (flags.includes("identity_unverified")) {
+      factors.push(
+        "Identity verification checks are not fully clear, adding operational and compliance risk on top of affordability concerns."
+      );
+    }
+
+    if (factors.length === 0) {
+      factors.push(
+        "Available information suggests constrained repayment capacity and limited financial buffer, so the application should be treated cautiously."
+      );
+    }
+
+    const detailedExplanation =
+      "Taken together, these factors point to a borrower with constrained financial flexibility. " +
+      (borrowerLabel
+        ? `As a ${borrowerLabel}, the applicant is likely operating on a tight monthly budget, so loan repayments would consume a meaningful share of income. `
+        : "Repayments would take up a meaningful share of the applicant's income. ") +
+      (loan.loanAmount
+        ? "The size of the requested loan further increases this burden, leaving less room to absorb shocks such as medical costs or employment changes. "
+        : "This leaves limited room to absorb shocks such as medical costs or employment changes. ") +
+      (flags.includes("identity_unverified")
+        ? "In addition, unresolved identity verification issues introduce extra non-financial risk that should be resolved before approving the loan."
+        : "Given these points, the case warrants careful manual review before any approval decision.");
+
+    return { keyFactors: factors, detailedExplanation };
   };
 
   const handleApprove = () => {
@@ -460,6 +580,7 @@ export function AdminLoanApplications() {
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-20 bg-slate-50 border-b-[1.5px] border-slate-200 shadow-sm">
                   <tr>
+                    <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Loan ID</th>
                     <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">User</th>
                     <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Category</th>
                     <th className="text-left py-4 px-6 text-[11px] font-black tracking-widest text-black uppercase whitespace-nowrap">Loan Amount</th>
@@ -475,6 +596,9 @@ export function AdminLoanApplications() {
                       onClick={() => handleLoanClick(loans.findIndex(l => l.id === loanApp.id), loanApp.id)}
                       className="hover:bg-blue-50/50 cursor-pointer transition-colors"
                     >
+                      <td className="py-5 px-6 text-sm font-black text-slate-700 uppercase tracking-widest whitespace-nowrap">
+                        {loanApp.loanCode}
+                      </td>
                       <td className="py-5 px-6">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 border-[1.5px] border-blue-600 bg-blue-600 flex items-center justify-center flex-shrink-0 rounded-full">
@@ -534,6 +658,7 @@ export function AdminLoanApplications() {
                 <h2 className="text-4xl font-black text-black uppercase tracking-tighter leading-none">{loan.name}</h2>
                 <div className="flex justify-between items-center text-xs font-black tracking-widest text-slate-500 uppercase mt-4 border-b-[1.5px] border-black pb-4">
                   <span className="bg-slate-100 border-[1.5px] border-black text-black px-3 py-1">{loan.category}</span>
+                  <span className="bg-black text-white border-[1.5px] border-black px-3 py-1 tracking-[0.2em]">{loan.loanCode}</span>
                   <span className="flex items-center gap-1">📍 {loan.location}</span>
                 </div>
 
@@ -610,60 +735,78 @@ export function AdminLoanApplications() {
                   <p className="text-xs font-bold text-white/50 uppercase tracking-widest animate-pulse">Loading analysis...</p>
                 ) : explainability ? (
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                      <span className="text-[10px] font-black uppercase text-white/50 tracking-widest">Model Version</span>
-                      <span className="text-xs text-white font-bold bg-white/10 px-2 py-0.5">{explainability.modelVersion || 'N/A'}</span>
+                    {/* Top metadata */}
+                    <div className="flex justify-between items-center border-b border-white/15 pb-2">
+                      <span className="text-[10px] font-black uppercase text-white/55 tracking-widest">Model Version</span>
+                      <span className="text-[11px] text-white font-bold bg-white/10 px-2 py-0.5 rounded-sm">
+                        {explainability.modelVersion || 'N/A'}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                      <span className="text-[10px] font-black uppercase text-white/50 tracking-widest">Scoring Source</span>
-                      <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">{loan.rawLoan?.features?.scoringSource || explainability?.decisionSummary?.scoringSource || 'N/A'}</span>
+                    <div className="flex justify-between items-center border-b border-white/15 pb-2">
+                      <span className="text-[10px] font-black uppercase text-white/55 tracking-widest">Scoring Source</span>
+                      <span className="text-[11px] text-blue-300 font-bold uppercase tracking-wider">
+                        {loan.rawLoan?.features?.scoringSource || explainability?.decisionSummary?.scoringSource || 'N/A'}
+                      </span>
                     </div>
                     {explainability.decisionSummary && (
-                      <div className="pt-2 border-t border-slate-200 space-y-2">
-                        <p className="text-xs font-semibold text-slate-700 uppercase">Decision Summary</p>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Recommended Decision</span>
-                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.decision || 'N/A'}</span>
+                      <div className="pt-3 border-t border-white/15 space-y-2">
+                        <p className="text-[11px] font-black text-white/70 uppercase tracking-widest">Decision Summary</p>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-white/60 uppercase tracking-widest">Recommended Decision</span>
+                          <span className="text-white font-semibold uppercase tracking-widest">
+                            {explainability.decisionSummary.decision || 'N/A'}
+                          </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Pre-screen Status</span>
-                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.preScreenStatus || 'N/A'}</span>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-white/60 uppercase tracking-widest">Pre-screen Status</span>
+                          <span className="text-white font-semibold uppercase tracking-widest">
+                            {explainability.decisionSummary.preScreenStatus || 'N/A'}
+                          </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600">Manual Review</span>
-                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.manualReviewRequired ? 'Yes' : 'No'}</span>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-white/60 uppercase tracking-widest">Manual Review</span>
+                          <span className="text-white font-semibold uppercase tracking-widest">
+                            {explainability.decisionSummary.manualReviewRequired ? 'YES' : 'NO'}
+                          </span>
                         </div>
                         {explainability.decisionSummary.decisionReason && (
-                          <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded p-2">
+                          <p className="text-[11px] text-white/85 bg-white/5 border border-white/15 rounded p-2 mt-1 leading-relaxed">
                             {explainability.decisionSummary.decisionReason}
                           </p>
                         )}
                       </div>
                     )}
                     {Array.isArray(explainability.flags) && explainability.flags.length > 0 && (
-                      <div className="pt-2 border-t border-slate-200">
-                        <p className="text-xs font-semibold text-slate-700 mb-2 uppercase">Risk Flags</p>
+                      <div className="pt-3 border-t border-white/15">
+                        <p className="text-[11px] font-semibold text-white/80 mb-2 uppercase tracking-widest">Risk Flags</p>
                         <div className="flex flex-wrap gap-1">
                           {explainability.flags.slice(0, 8).map((flag: string, idx: number) => (
-                            <span key={idx} className="text-[11px] px-2 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                            <span key={idx} className="text-[11px] px-2 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300">
                               {flag}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
-                    {Array.isArray(explainability.explanationSummary) && explainability.explanationSummary.length > 0 && (
-                      <div className="pt-2">
-                        <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-3 border-l-2 border-blue-500 pl-2">Key Reasoning Factors</p>
-                        <ul className="space-y-2">
-                          {explainability.explanationSummary.map((item: string, idx: number) => (
-                            <li key={idx} className="text-xs text-white font-medium bg-white/5 p-2 border-[1.5px] border-white/10">
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {(() => {
+                      const narrative = buildExplainabilityNarrative(loan, explainability);
+                      if (!narrative) return null;
+                      return (
+                        <div className="pt-2 space-y-3">
+                          <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-1 border-l-2 border-blue-500 pl-2">Key Reasoning Factors</p>
+                          <ul className="space-y-2">
+                            {narrative.keyFactors.map((item: string, idx: number) => (
+                              <li key={idx} className="text-xs text-white font-medium bg-white/5 p-2 border-[1.5px] border-white/10">
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="text-[11px] text-white/80 leading-relaxed">
+                            {narrative.detailedExplanation}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Explainability unavailable.</p>

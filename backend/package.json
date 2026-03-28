@@ -14,7 +14,8 @@
     "demo:priority1": "node --env-file=.env scripts/demo_priority1_benchmarks.js",
     "smoke:ml": "node --env-file=.env scripts/smoke_ml_service.js",
     "smoke:phase4": "node --env-file=.env scripts/smoke_phase4_admin_flow.js",
-    "smoke:phase5": "node --env-file=.env scripts/smoke_phase5_admin_actions.js"
+    "smoke:phase5": "node --env-file=.env scripts/smoke_phase5_admin_actions.js",
+    "backfill:loanCodes": "node --env-file=.env scripts/backfillLoanCodes.js"
   },
   "keywords": [
     "Credit",

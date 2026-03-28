@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import LoanApplication from "../models/LoanApplication.js";
 
@@ -168,6 +169,64 @@ export const getEligibility = async (req, res) => {
     console.error("ERROR FETCHING ELIGIBILITY:", error.message);
     return res.status(500).json({
       message: "Error fetching eligibility",
+      error: error.message,
+    });
+  }
+};
+
+// ==================== CHANGE PASSWORD ====================
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Current and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user || !user.password) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isCurrentValid = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isCurrentValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+
+    if (isSamePassword) {
+      return res
+        .status(400)
+        .json({ message: "New password must be different from the current password" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("ERROR CHANGING PASSWORD:", error.message);
+    return res.status(500).json({
+      message: "Error changing password",
       error: error.message,
     });
   }

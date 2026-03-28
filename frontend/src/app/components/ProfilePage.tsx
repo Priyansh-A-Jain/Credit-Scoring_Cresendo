@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, KeyRound, Trash2, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { User, Mail, Phone, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
@@ -25,12 +25,6 @@ export function ProfilePage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
-
-  // Delete account state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [deletingAccount, setDeletingAccount] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     fetchProfile();
@@ -93,29 +87,6 @@ export function ProfilePage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== "DELETE") {
-      setDeleteError("Please type DELETE to confirm");
-      return;
-    }
-
-    try {
-      setDeletingAccount(true);
-      const response = await apiClient.delete(`${API_BASE_URL}/user/delete-account`);
-
-      if (response.ok) {
-        logout();
-      } else {
-        const data = await response.json();
-        setDeleteError(data.message || "Failed to delete account");
-      }
-    } catch (error) {
-      setDeleteError("An error occurred. Please try again.");
-    } finally {
-      setDeletingAccount(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col text-black font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden">
       {/* Header — matches MyLoansPage exactly */}
@@ -158,7 +129,6 @@ export function ProfilePage() {
           <div className="text-xs font-black uppercase tracking-widest text-black/50 animate-pulse py-20 text-center">Loading profile...</div>
         ) : profile ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
             {/* LEFT: User Details */}
             <div className="space-y-6">
               <h2 className="text-xs font-black uppercase tracking-[0.2em] text-black/40 mb-2">Account Details</h2>
@@ -211,7 +181,7 @@ export function ProfilePage() {
               {/* Change Password */}
               <div className="bg-white border border-slate-200 p-6">
                 <button
-                  onClick={() => { setShowPasswordSection(!showPasswordSection); setPasswordError(""); }}
+                  onClick={() => { setShowPasswordSection(!showPasswordSection); setPasswordError(""); setPasswordSuccess(""); }}
                   className="flex items-center gap-4 w-full text-left group"
                 >
                   <div className="w-10 h-10 bg-black flex items-center justify-center rounded-full flex-shrink-0 group-hover:bg-blue-600 transition-colors">
@@ -236,7 +206,7 @@ export function ProfilePage() {
                           className="w-full border border-slate-200 bg-white px-4 py-3 text-xs font-black text-black uppercase tracking-wider focus:border-blue-600 focus:outline-none transition-colors rounded-none"
                           placeholder="ENTER CURRENT PASSWORD"
                         />
-                        <button onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black">
+                        <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black">
                           {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
@@ -253,7 +223,7 @@ export function ProfilePage() {
                           className="w-full border border-slate-200 bg-white px-4 py-3 text-xs font-black text-black uppercase tracking-wider focus:border-blue-600 focus:outline-none transition-colors rounded-none"
                           placeholder="ENTER NEW PASSWORD"
                         />
-                        <button onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black">
+                        <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30 hover:text-black">
                           {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
@@ -281,59 +251,6 @@ export function ProfilePage() {
                       className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-none border-none font-black text-xs uppercase tracking-[0.15em] h-12 transition-all disabled:opacity-50"
                     >
                       {changingPassword ? "Updating..." : "Update Password"}
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Delete Account */}
-              <div className="bg-white border border-red-200 p-6">
-                <button
-                  onClick={() => { setShowDeleteConfirm(!showDeleteConfirm); setDeleteError(""); setDeleteConfirmText(""); }}
-                  className="flex items-center gap-4 w-full text-left group"
-                >
-                  <div className="w-10 h-10 bg-red-500 flex items-center justify-center rounded-full flex-shrink-0 group-hover:bg-red-600 transition-colors">
-                    <Trash2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-black text-red-600 uppercase tracking-wider">Delete Account</p>
-                    <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest mt-0.5">Permanently remove your account</p>
-                  </div>
-                </button>
-
-                {showDeleteConfirm && (
-                  <div className="mt-6 space-y-4 pt-4 border-t border-red-200">
-                    <div className="bg-red-50 border border-red-200 p-4 flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-black text-red-600 uppercase tracking-wider mb-1">Warning</p>
-                        <p className="text-[10px] font-bold text-red-500 tracking-wider leading-relaxed">
-                          This action is irreversible. Your account and personal data will be permanently deleted. Your loan records will be retained for compliance.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-black text-red-500 uppercase tracking-widest block mb-2">Type "DELETE" to confirm</label>
-                      <input
-                        type="text"
-                        value={deleteConfirmText}
-                        onChange={(e) => setDeleteConfirmText(e.target.value)}
-                        className="w-full border border-red-200 bg-white px-4 py-3 text-xs font-black text-black uppercase tracking-wider focus:border-red-500 focus:outline-none transition-colors rounded-none"
-                        placeholder="DELETE"
-                      />
-                    </div>
-
-                    {deleteError && (
-                      <p className="text-xs font-black text-red-500 uppercase tracking-widest">{deleteError}</p>
-                    )}
-
-                    <Button
-                      onClick={handleDeleteAccount}
-                      disabled={deletingAccount || deleteConfirmText !== "DELETE"}
-                      className="w-full bg-red-500 text-white hover:bg-red-600 rounded-none border-none font-black text-xs uppercase tracking-[0.15em] h-12 transition-all disabled:opacity-50"
-                    >
-                      {deletingAccount ? "Deleting..." : "Delete My Account"}
                     </Button>
                   </div>
                 )}
