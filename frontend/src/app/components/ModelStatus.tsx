@@ -103,19 +103,20 @@ export function ModelStatus() {
   const dbHealthy = Boolean(ready?.database?.ready);
 
   return (
-    <div className="h-screen flex flex-col bg-[#fafafa]">
+    <div className="h-screen flex flex-col bg-[#f5f7fb]">
       <header className="bg-white border-b-[1.5px] border-black flex-shrink-0 z-10 relative">
         <div className="w-full px-6 sm:px-8 md:px-10 lg:px-12">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span> ADMIN</span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT</span>
             </div>
             <nav className="hidden md:flex items-center gap-8 mt-1">
               <button onClick={() => navigate("/admin")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Dashboard</button>
               <button onClick={() => navigate("/admin/loans")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Loans</button>
               <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Audit Log</button>
               <button onClick={() => navigate("/admin/models")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Models</button>
+              <button onClick={() => navigate("/admin/copilot")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Chat</button>
             </nav>
             <Button
               onClick={() => logout()}
@@ -135,7 +136,7 @@ export function ModelStatus() {
               <h1 className="text-5xl md:text-6xl font-black text-black tracking-tighter uppercase">MODEL STATUS</h1>
               <p className="text-black/60 font-bold uppercase tracking-widest text-xs mt-3">Live model/runtime telemetry from backend readiness and scored loans.</p>
             </div>
-            <Button onClick={() => void loadData()} variant="outline" className="border-[1.5px] border-black text-black rounded-none font-black text-xs uppercase tracking-[0.15em] hover:bg-black hover:text-white transition-colors px-6 py-3">
+            <Button onClick={() => void loadData()} variant="outline" className="border-[1.5px] border-black text-black rounded-none font-black text-xs uppercase tracking-[0.15em] hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-colors px-6 py-3">
               REFRESH
             </Button>
           </div>
@@ -143,13 +144,13 @@ export function ModelStatus() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white border-[1.5px] border-black p-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform">
               <p className="text-[10px] uppercase text-black/50 font-black tracking-[0.2em] mb-3">Model Runtime</p>
-              <p className={`text-4xl font-black tracking-tighter uppercase ${modelHealthy ? "text-green-500" : "text-red-500"}`}>
+              <p className={`text-4xl font-black tracking-tighter uppercase ${modelHealthy ? "text-blue-600" : "text-slate-400"}`}>
                 {modelHealthy ? "UP" : "DOWN"}
               </p>
             </div>
             <div className="bg-white border-[1.5px] border-black p-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-transform">
               <p className="text-[10px] uppercase text-black/50 font-black tracking-[0.2em] mb-3">Database</p>
-              <p className={`text-4xl font-black tracking-tighter uppercase ${dbHealthy ? "text-green-500" : "text-red-500"}`}>
+              <p className={`text-4xl font-black tracking-tighter uppercase ${dbHealthy ? "text-blue-600" : "text-slate-400"}`}>
                 {dbHealthy ? "UP" : "DOWN"}
               </p>
             </div>
@@ -166,10 +167,10 @@ export function ModelStatus() {
                 Risk Distribution
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-bold uppercase tracking-widest text-black/70">
-                <div className="flex flex-col gap-1 bg-slate-50 border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span className="">LOW</span><span className="font-black text-green-600 text-4xl tracking-tighter">{telemetry.risk.low}</span></div>
-                <div className="flex flex-col gap-1 bg-slate-50 border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span className="">MEDIUM</span><span className="font-black text-yellow-500 text-4xl tracking-tighter">{telemetry.risk.medium}</span></div>
-                <div className="flex flex-col gap-1 bg-slate-50 border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span className="">HIGH</span><span className="font-black text-red-500 text-4xl tracking-tighter">{telemetry.risk.high}</span></div>
-                <div className="flex flex-col gap-1 bg-slate-50 border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span className="">UNKNOWN</span><span className="font-black text-black text-4xl tracking-tighter">{telemetry.risk.unknown}</span></div>
+                <div className="flex flex-col gap-1 bg-white border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span>LOW</span><span className="font-black text-blue-400 text-4xl tracking-tighter">{telemetry.risk.low}</span></div>
+                <div className="flex flex-col gap-1 bg-white border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span>MEDIUM</span><span className="font-black text-blue-500 text-4xl tracking-tighter">{telemetry.risk.medium}</span></div>
+                <div className="flex flex-col gap-1 bg-white border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span>HIGH</span><span className="font-black text-blue-700 text-4xl tracking-tighter">{telemetry.risk.high}</span></div>
+                <div className="flex flex-col gap-1 bg-white border-[1.5px] border-black/10 p-6 items-center justify-center text-center"><span>UNKNOWN</span><span className="font-black text-slate-500 text-4xl tracking-tighter">{telemetry.risk.unknown}</span></div>
               </div>
             </div>
           </div>
@@ -183,7 +184,7 @@ export function ModelStatus() {
               <p className="text-black/50 text-xs font-bold uppercase tracking-widest animate-pulse">LOADING LOGS...</p>
             ) : ready ? (
               <div className="space-y-4 text-xs font-bold uppercase tracking-widest">
-                <div className="flex items-center gap-4 border-b-[1.5px] border-black/5 pb-3"><span className="text-black/50 w-32 shrink-0">MODEL READY:</span> <span className={`font-black tracking-wider ${modelHealthy ? "text-green-600 bg-green-50/50 px-2 py-1 border-[1.5px] border-green-200" : "text-red-500 bg-red-50/50 px-2 py-1 border-[1.5px] border-red-200"}`}>{String(modelHealthy)}</span></div>
+                <div className="flex items-center gap-4 border-b-[1.5px] border-black/5 pb-3"><span className="text-black/50 w-32 shrink-0">MODEL READY:</span> <span className={`font-black tracking-wider ${modelHealthy ? "text-blue-600 bg-blue-50/70 px-2 py-1 border-[1.5px] border-blue-200" : "text-slate-600 bg-slate-50 px-2 py-1 border-[1.5px] border-slate-300"}`}>{String(modelHealthy)}</span></div>
                 <div className="flex items-center gap-4 border-b-[1.5px] border-black/5 pb-3"><span className="text-black/50 w-32 shrink-0">PYTHON BINARY:</span> <span className="font-black text-blue-600 break-all">{ready.model?.pythonBinary || "N/A"}</span></div>
                 <div className="flex items-center gap-4 border-b-[1.5px] border-black/5 pb-3"><span className="text-black/50 w-32 shrink-0">ARTIFACT PATH:</span> <span className="font-black text-black break-all">{ready.model?.artifactPath || "N/A"}</span></div>
                 <div className="flex items-center gap-4 border-b-[1.5px] border-black/5 pb-3"><span className="text-black/50 w-32 shrink-0">RUNNER PATH:</span> <span className="font-black text-black break-all">{ready.model?.runnerPath || "N/A"}</span></div>
@@ -212,7 +213,7 @@ export function ModelStatus() {
             )}
 
             {modelHealthy && dbHealthy && (
-              <div className="mt-8 flex items-center gap-3 text-green-600 font-black text-xs uppercase tracking-widest bg-green-50 px-4 py-3 border-[1.5px] border-green-500/30">
+              <div className="mt-8 flex items-center gap-3 text-blue-600 font-black text-xs uppercase tracking-widest bg-blue-50 px-4 py-3 border-[1.5px] border-blue-500/30">
                 <CheckCircle2 className="w-5 h-5" />
                 BACKEND & ML RUNTIME SYSTEMS ARE HEALTHY
               </div>

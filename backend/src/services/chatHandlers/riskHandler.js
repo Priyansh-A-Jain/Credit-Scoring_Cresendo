@@ -143,19 +143,37 @@ export async function riskHandler(applicationId, routedQuery) {
     answer = await askGroundedCopilot({ question, context, intent: "risk_explanation" });
   } catch (err) {
     if (err.isOllamaUnavailable) {
-      // Graceful fallback: return structured data without LLM prose
-      const fallback = [
-        `Risk Level: ${card.riskLevel ?? "not recorded"}`,
-        `Decision: ${card.decision ?? "not recorded"}`,
-        `Probability of Default: ${card.probabilityOfDefault != null ? (card.probabilityOfDefault * 100).toFixed(1) + "%" : "not available"}`,
-        `Pre-Screen Status: ${card.preScreenStatus ?? "not recorded"}`,
-      ];
-      if (card.topNegativeFactors?.length)
-        fallback.push(`Top Concerns: ${card.topNegativeFactors.join("; ")}`);
-      if (card.decisionReason)
-        fallback.push(`Decision Reason: ${card.decisionReason}`);
-      fallback.push("\n[AI reasoning unavailable — Ollama is not reachable]");
-      answer = fallback.join("\n");
+      // Graceful fallback: return a short plain-English summary without LLM prose
+      const parts = [];
+
+      const riskLevel = card.riskLevel ?? "not recorded";
+      const decision = card.decision ?? "not recorded";
+      const pd =
+        card.probabilityOfDefault != null
+          ? `${(card.probabilityOfDefault * 100).toFixed(1)}%`
+          : "not available";
+      const preScreen = card.preScreenStatus ?? "not recorded";
+
+      parts.push(
+        `This application has a risk level of ${riskLevel} and the decision is "${decision}". ` +
+          `The model-estimated probability of default is ${pd}, and the pre-screen status is ${preScreen}.`
+      );
+
+      if (card.topNegativeFactors?.length) {
+        parts.push(
+          `Key concerns include: ${card.topNegativeFactors.join("; ")}.`
+        );
+      }
+
+      if (card.decisionReason) {
+        parts.push(`Decision reason: ${card.decisionReason}.`);
+      }
+
+      parts.push(
+        "Detailed AI reasoning is not available right now because the analysis engine (Ollama) is not reachable."
+      );
+
+      answer = parts.join(" ");
     } else {
       answer = `Risk analysis unavailable: ${err.message}`;
     }

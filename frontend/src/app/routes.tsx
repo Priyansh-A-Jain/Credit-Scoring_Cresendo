@@ -8,6 +8,7 @@ import { AdminLoanApplications } from "./components/AdminLoanApplications";
 import { AdminUserDashboard } from "./components/AdminUserDashboard";
 import { AuditLog } from "./components/AuditLog";
 import { ModelStatus } from "./components/ModelStatus";
+import { AdminCopilot } from "./components/AdminCopilot";
 import { ApplyLoanPage } from "./components/ApplyLoanPage";
 import { MyLoansPage } from "./components/MyLoansPage";
 import { ProfilePage } from "./components/ProfilePage";
@@ -71,5 +72,9 @@ export const router = createBrowserRouter([
   {
     path: "/admin/models",
     element: <ProtectedRoute requiredRole="admin"><ModelStatus /></ProtectedRoute>,
+  },
+  {
+    path: "/admin/copilot",
+    element: <ProtectedRoute requiredRole="admin"><AdminCopilot /></ProtectedRoute>,
   },
 ]);

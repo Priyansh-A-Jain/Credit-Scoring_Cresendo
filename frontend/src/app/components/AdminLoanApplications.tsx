@@ -519,7 +519,7 @@ export function AdminLoanApplications() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <img src="/images/download.png" alt="Barclays Logo" className="w-8 h-8 object-contain" />
-              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT <span className="text-black/30">|</span> ADMIN</span>
+              <span className="font-black text-xl sm:text-2xl text-black uppercase tracking-tight">CREDIT</span>
             </div>
             <nav className="hidden md:flex items-center gap-8 mt-1">
               <button onClick={() => navigate("/admin")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Dashboard</button>
@@ -527,6 +527,7 @@ export function AdminLoanApplications() {
               <button onClick={() => navigate("/admin/loans")} className="text-blue-600 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-700 transition-all pb-1.5 border-b-[3px] border-blue-600">Loans</button>
               <button onClick={() => navigate("/admin/reports")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Audit Log</button>
               <button onClick={() => navigate("/admin/models")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Models</button>
+              <button onClick={() => navigate("/admin/copilot")} className="text-slate-900 font-black uppercase tracking-[0.15em] text-xs hover:text-blue-600 transition-all pb-1.5 border-b-[3px] border-transparent hover:border-blue-600">Chat</button>
             </nav>
             <Button
               onClick={() => logout()}
