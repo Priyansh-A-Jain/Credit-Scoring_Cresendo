@@ -15,7 +15,8 @@ COPY package.json ./
 RUN npm install --omit=dev
 
 # Install Python ML runtime deps used by the serving artifact
-RUN pip install --no-cache-dir numpy pandas scikit-learn joblib
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 

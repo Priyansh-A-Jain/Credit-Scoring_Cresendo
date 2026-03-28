@@ -378,7 +378,8 @@ function transformApplicationToModelFeatures({
     docsVerified: Boolean(
       user?.emailVerified ||
       hasBankAccount ||
-      alternativeData?.transactionHistoryPath
+      alternativeData?.transactionHistoryPath ||
+      applicationInput?.identityVerified   // OCR Textract result (additive)
     ),
     collateralType: collateral?.type || "none",
     collateralValue: Number(collateral?.estimatedValue || 0),
@@ -494,6 +495,7 @@ export const applyForLoan = async (req, res) => {
       homeDetails,
       autoDetails,
       businessDetails,
+      identityVerified,   // OCR Textract result (additive)
     } = req.body;
 
     // Validate required fields
@@ -561,6 +563,7 @@ export const applyForLoan = async (req, res) => {
       maritalStatus: applicantProfile?.maritalStatus,
       hasExistingLoan: applicantProfile?.hasExistingLoan,
       existingEmi: toNumberOrNull(applicantProfile?.existingEmi),
+      identityVerified: Boolean(identityVerified),  // OCR Textract result
     };
 
     const preScreen = runPreScreenChecks({

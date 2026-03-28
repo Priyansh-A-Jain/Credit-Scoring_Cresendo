@@ -10,6 +10,10 @@ import redisClient from "../config/redis.js";
 // In-memory temp signup data for development
 const inMemoryTempSignups = new Map();
 
+const shouldExposeDebugEmailOtp = () =>
+  process.env.NODE_ENV === "development" ||
+  process.env.ALLOW_EMAIL_OTP_FALLBACK === "true";
+
 async function getTempSignupData({ phone, email }) {
   if (phone && email) {
     try {
@@ -145,11 +149,11 @@ export const signup = async (req, res) => {
     console.log(`Signup OTP sent successfully to phone: ${phone}`);
 
     return res.status(200).json({
-      message: "OTP sent to phone",
-      step: "verify_phone_otp",
-      phone: phone.slice(-4).padStart(phone.length, '*'), // Send masked phone
-      ...(process.env.NODE_ENV === "development" && phoneOtpResult?.otp
-        ? { debugPhoneOtp: phoneOtpResult.otp }
+      message: "OTP sent to email",
+      step: "verify_email_otp",
+      email: email.split("@")[0] + "@***.*", // Send masked email
+      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
+        ? { debugEmailOtp: emailOtpResult.otp }
         : {}),
     });
   } catch (error) {
@@ -286,8 +290,8 @@ export const verifyPhoneOtp = async (req, res) => {
     return res.status(200).json({
       message: "Phone verified! OTP sent to email",
       step: "verify_email_otp",
-      email: email.split("@")[0] + "@***.*",
-      ...(process.env.NODE_ENV === "development" && emailOtpResult?.otp
+      email: tempSignupData.email.split("@")[0] + "@***.*",
+      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
         ? { debugEmailOtp: emailOtpResult.otp }
         : {}),
     });
@@ -543,9 +547,9 @@ export const login = async (req, res) => {
     console.log(`Login OTP sent successfully to phone: ${user.phone}`);
 
     return res.status(200).json({
-      message: "OTP sent to phone, please verify",
-      ...(process.env.NODE_ENV === "development" && phoneOtpResult?.otp
-        ? { debugPhoneOtp: phoneOtpResult.otp }
+      message: "OTP sent to email, please verify",
+      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
+        ? { debugEmailOtp: emailOtpResult.otp }
         : {}),
     });
   } catch (error) {
@@ -713,7 +717,7 @@ export const resendEmailOtp = async (req, res) => {
       message: "Email OTP resent successfully",
       step: "verify_email_otp",
       email: tempSignupData.email.split("@")[0] + "@***.*",
-      ...(process.env.NODE_ENV === "development" && emailOtpResult?.otp
+      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
         ? { debugEmailOtp: emailOtpResult.otp }
         : {}),
     });
