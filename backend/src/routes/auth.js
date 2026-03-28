@@ -2,7 +2,6 @@ import express from "express";
 import {
   signup,
   verifyOtp,
-  verifyPhoneOtp,
   verifyEmailOtp,
   login,
   verifyLoginOTP,
@@ -14,7 +13,6 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/verify-otp", verifyOtp); // Legacy endpoint (for existing login flow)
-router.post("/verify-phone-otp", verifyPhoneOtp); // New: Verify phone OTP during signup
 router.post("/verify-email-otp", verifyEmailOtp); // New: Verify email OTP and create user
 router.post("/resend-email-otp", resendEmailOtp); // New: Resend email OTP (Gmail verification only - no phone verification required)
 router.post("/login", login);

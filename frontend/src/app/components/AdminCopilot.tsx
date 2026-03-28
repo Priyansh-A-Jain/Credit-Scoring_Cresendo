@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services/apiClient";
-import { Send, Bot, BrainCircuit } from "lucide-react";
+import { Send, Bot } from "lucide-react";
 
 const API_BASE_URL = (import.meta as any).env.VITE_API_URL || "http://localhost:8000/api";
 
@@ -266,7 +266,7 @@ export function AdminCopilot() {
           {/* Chat layout */}
           <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[420px]">
             {/* Input column */}
-            <div className="w-full lg:w-5/12 flex flex-col border-[1.5px] border-black bg-white p-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)] gap-4">
+            <div className="w-full lg:w-5/12 lg:h-[520px] flex flex-col border-[1.5px] border-black bg-white p-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)] gap-4">
               <div className="flex items-center gap-2 mb-1">
                 <Bot className="w-4 h-4 text-blue-600" />
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-800">
@@ -386,7 +386,7 @@ export function AdminCopilot() {
             </div>
 
             {/* Output column - chat history (themed to match app) */}
-            <div className="w-full lg:w-7/12 flex flex-col border-[1.5px] border-black bg-white text-slate-900 rounded-sm shadow-[4px_4px_0_0_rgba(0,0,0,1)] max-h-[520px] overflow-hidden">
+            <div className="w-full lg:w-7/12 lg:h-[520px] flex flex-col border-[1.5px] border-black bg-white text-slate-900 rounded-sm shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-hidden">
               {/* Chat header */}
               <div className="flex items-center gap-3 px-4 py-3 bg-black text-white border-b border-black">
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-md border border-white/20">

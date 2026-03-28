@@ -11,7 +11,6 @@ All new fields are additive and should not replace existing keys used by UI comp
 
 - `POST /auth/signup`
 - `POST /auth/verify-otp`
-- `POST /auth/verify-phone-otp`
 - `POST /auth/verify-email-otp`
 - `POST /auth/login`
 - `POST /auth/verify-login-otp`

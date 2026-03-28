@@ -18,6 +18,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const ADMIN_COPILOT_CHAT_KEY = 'adminCopilotChatMessages';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,6 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     console.log('🚪 Logging out...');
+    try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem(ADMIN_COPILOT_CHAT_KEY);
+      }
+    } catch (e) {
+      console.warn('Failed to clear copilot chat session cache', e);
+    }
     authService.clearTokens();
     setIsAuthenticated(false);
     setUser(null);

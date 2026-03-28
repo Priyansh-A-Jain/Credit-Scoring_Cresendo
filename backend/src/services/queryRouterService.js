@@ -109,8 +109,8 @@ const INTENT_RULES = [
     confidence: "high",
     test: (q) =>
       OBJECT_ID_RE.test(q) ||
-      /\b(show|pull up|fetch|get|display|open|load|find|lookup|look up)\b/.test(q) &&
-        /\b(application|applicant|case|record|profile|loan)\b/.test(q),
+      /\b(show|pull up|fetch|get|display|open|load|find|lookup|look up|give|provide|view|see)\b/.test(q) &&
+        /\b(application|applicant|case|record|profile|loan|details?|info(?:rmation)?|user|borrower|customer|client)\b/.test(q),
   },
 
   // ── 6. aggregate_insight ──────────────────────────────────────────────────
@@ -194,6 +194,13 @@ function buildEntities(q, intent) {
     if (allIds.length >= 2) {
       entities.applicationIdA = allIds[0];
       entities.applicationIdB = allIds[1];
+    } else {
+      // Fallback: support human-readable loan codes like P45, H7, etc.
+      const allLoanCodes = [...q.matchAll(/\b([a-z]\d{1,8})\b/gi)].map((m) => m[1].toUpperCase());
+      if (allLoanCodes.length >= 2) {
+        entities.applicationIdA = allLoanCodes[0];
+        entities.applicationIdB = allLoanCodes[1];
+      }
     }
   }
 

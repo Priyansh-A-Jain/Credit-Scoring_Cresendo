@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { generateTokens } from "../utils/generateTokens.js";
-import { sendOTP, verifyOTP } from "../services/otpService.js";
 import { sendEmailOTP, verifyEmailOTP } from "../services/emailService.js";
 import { inMemoryUsers } from "../services/dbFallback.js";
 import redisClient from "../config/redis.js";
@@ -143,15 +142,15 @@ export const signup = async (req, res) => {
       }, 900000);
     }
 
-    // Send phone OTP first for signup
-    console.log(`📱 Sending signup OTP to phone: ${phone}`);
-    const phoneOtpResult = await sendOTP(phone);
-    console.log(`Signup OTP sent successfully to phone: ${phone}`);
+    // Email-only OTP signup flow
+    console.log(`📧 Sending signup OTP to email: ${email}`);
+    const emailOtpResult = await sendEmailOTP(email);
+    console.log(`Signup email OTP sent successfully to: ${email}`);
 
     return res.status(200).json({
       message: "OTP sent to email",
       step: "verify_email_otp",
-      email: email.split("@")[0] + "@***.*", // Send masked email
+      email: email.split("@")[0] + "@***.*",
       ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
         ? { debugEmailOtp: emailOtpResult.otp }
         : {}),
@@ -165,142 +164,19 @@ export const signup = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  try {
-    const { phone, otp } = req.body;
-
-    if (!phone || !otp) {
-      return res.status(400).json({ message: "phone and otp are required" });
-    }
-
-    let user = null;
-    try {
-      // Try to query database
-      user = await User.findOne({ phone });
-    } catch (dbError) {
-      // If database is unavailable, check in-memory storage
-      if (process.env.NODE_ENV === "development") {
-        user = inMemoryUsers.get(phone);
-      } else {
-        throw dbError;
-      }
-    }
-
-    if (!user && process.env.NODE_ENV === "development") {
-      user = inMemoryUsers.get(phone);
-    }
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    try {
-      await verifyOTP(phone, otp);
-    } catch (otpError) {
-      if (otpError.message === "OTP expired") {
-        return res.status(400).json({ message: "OTP expired or not found" });
-      }
-
-      if (otpError.message === "Incorrect OTP") {
-        return res.status(400).json({ message: "Invalid OTP" });
-      }
-
-      throw otpError;
-    }
-
-    user.isOnBoarded = true;
-    user.phoneVerified = true;
-
-    try {
-      // Try to save to database
-      if (user.save) {
-        await user.save();
-      } else {
-        // In-memory update
-        inMemoryUsers.set(phone, user);
-      }
-    } catch (dbError) {
-      if (process.env.NODE_ENV !== "development") {
-        throw dbError;
-      }
-    }
-
-    const { accessToken, refreshToken } = generateTokens(
-      user._id,
-      user.role || "user"
-    );
-
-    return res.status(200).json({
-      accessToken,
-      refreshToken,
-      user: {
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-      },
-    });
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    return res
-      .status(500)
-      .json({ message: "Error verifying OTP", error: error.message });
-  }
+  return res.status(410).json({
+    message:
+      "This phone-OTP endpoint is deprecated. Use /auth/verify-email-otp for signup and /auth/verify-login-otp for login.",
+  });
 };
 
 // ==================== NEW SIGNUP FLOW WITH EMAIL VERIFICATION ====================
 
 export const verifyPhoneOtp = async (req, res) => {
-  try {
-    const { phone, email, otp } = req.body;
-
-    if (!phone || !email || !otp) {
-      return res.status(400).json({ message: "phone, email and otp are required" });
-    }
-
-    console.log(`verify-phone-otp called for signup: ${phone}`);
-
-    const tempRecord = await getTempSignupData({ phone, email });
-    const tempSignupData = tempRecord?.data;
-
-    if (!tempSignupData) {
-      console.error(`No signup data found for: ${phone}`);
-      return res
-        .status(404)
-        .json({ message: "Signup session not found. Please signup again." });
-    }
-
-    // Verify phone OTP
-    try {
-      await verifyOTP(phone, otp);
-      console.log(`Phone OTP verified for: ${phone}`);
-    } catch (otpError) {
-      console.error(`Phone OTP verification failed: ${otpError.message}`);
-      return res
-        .status(400)
-        .json({ message: otpError.message || "Invalid phone OTP" });
-    }
-
-    tempSignupData.phoneVerified = true;
-    await persistTempSignupData(tempRecord?.key, tempSignupData);
-
-    // Send email OTP after phone verification
-    console.log(`Sending email OTP to: ${email}`);
-    const emailOtpResult = await sendEmailOTP(email);
-    console.log(`Email OTP sent to: ${email}`);
-
-    return res.status(200).json({
-      message: "Phone verified! OTP sent to email",
-      step: "verify_email_otp",
-      email: tempSignupData.email.split("@")[0] + "@***.*",
-      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
-        ? { debugEmailOtp: emailOtpResult.otp }
-        : {}),
-    });
-  } catch (error) {
-    console.error("Phone OTP verification error:", error);
-    return res
-      .status(500)
-      .json({ message: "Error verifying phone OTP", error: error.message });
-  }
+  return res.status(410).json({
+    message:
+      "Phone OTP is no longer used. Signup is email-OTP only. Use /auth/verify-email-otp.",
+  });
 };
 
 export const verifyEmailOtp = async (req, res) => {
@@ -335,6 +211,7 @@ export const verifyEmailOtp = async (req, res) => {
     }
 
     tempSignupData.emailVerified = true;
+    tempSignupData.phoneVerified = true;
 
     // NOW CREATE THE USER
     console.log(`👤 Creating user with verified phone and email: ${phone}`);
@@ -542,12 +419,15 @@ export const login = async (req, res) => {
       });
     }
 
-    console.log(`Sending login OTP to phone: ${user.phone}`);
-    await sendOTP(user.phone);
-    console.log(`Login OTP sent successfully to phone: ${user.phone}`);
+    console.log(`Sending login OTP to email: ${user.email}`);
+    const emailOtpResult = await sendEmailOTP(user.email);
+    console.log(`Login OTP sent successfully to email: ${user.email}`);
 
     return res.status(200).json({
-      message: "OTP sent to phone, please verify",
+      message: "OTP sent to email, please verify",
+      ...(shouldExposeDebugEmailOtp() && emailOtpResult?.otp
+        ? { debugEmailOtp: emailOtpResult.otp }
+        : {}),
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -594,16 +474,16 @@ export const verifyLoginOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Verify phone OTP for login
+    // Verify email OTP for login
     try {
-      await verifyOTP(user.phone, otp);
-      console.log(`Login phone OTP verified for: ${user.phone}`);
+      await verifyEmailOTP(user.email, otp);
+      console.log(`Login email OTP verified for: ${user.email}`);
     } catch (otpError) {
-      if (otpError.message === "OTP expired") {
+      if (otpError.message.includes("expired") || otpError.message.includes("not found")) {
         return res.status(400).json({ message: "OTP expired or not found" });
       }
 
-      if (otpError.message === "Incorrect OTP") {
+      if (otpError.message.toLowerCase().includes("invalid")) {
         return res.status(400).json({ message: "Invalid OTP" });
       }
 

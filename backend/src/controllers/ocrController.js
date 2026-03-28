@@ -22,7 +22,8 @@ const storage = multer.diskStorage({
   },
 });
 
-const allowedMime = ["image/jpeg", "image/png", "image/webp"]; // Textract AnalyzeID supports JPEG/PNG only
+// Textract AnalyzeID supports JPEG and PNG for DocumentPages bytes.
+const allowedMime = ["image/jpeg", "image/png"];
 
 const upload = multer({
   storage,
@@ -31,7 +32,7 @@ const upload = multer({
     if (allowedMime.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only JPG, PNG, WEBP or PDF files are accepted"));
+      cb(new Error("Only JPG or PNG files are accepted"));
     }
   },
 }).single("document");
@@ -58,9 +59,13 @@ export const uploadAndAnalyzeDocument = (req, res) => {
       } catch (_) {}
 
       if (!result.success) {
+        const errorHint = result.error
+          ? ` (${result.error})`
+          : "";
         return res.status(422).json({
-          message: "Could not extract data from document",
+          message: "Could not extract data from document. Please upload a clear JPG/PNG image with visible ID fields.",
           error: result.error || "Textract returned no results",
+          hint: `If this keeps failing, verify AWS Textract credentials and region.${errorHint}`,
         });
       }
 

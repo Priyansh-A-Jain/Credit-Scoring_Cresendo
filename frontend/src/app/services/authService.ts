@@ -8,13 +8,8 @@ interface SignupPayload {
 }
 
 interface OtpVerificationPayload {
-  phone: string;
-  otp: string;
-}
-
-interface PhoneOtpVerificationPayload {
-  phone: string;
-  email: string;
+  phone?: string;
+  email?: string;
   otp: string;
 }
 
@@ -107,7 +102,7 @@ export const authService = {
     return response.json();
   },
 
-  // Verify OTP for login
+  // Verify OTP for login (email OTP for users)
   verifyLoginOtp: async (data: OtpVerificationPayload): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/auth/verify-login-otp`, {
       method: 'POST',
@@ -120,24 +115,6 @@ export const authService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'OTP verification failed');
-    }
-
-    return response.json();
-  },
-
-  // NEW: Verify phone OTP during signup (sends email OTP after)
-  verifyPhoneOtp: async (data: PhoneOtpVerificationPayload): Promise<GenericAuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Phone OTP verification failed');
     }
 
     return response.json();

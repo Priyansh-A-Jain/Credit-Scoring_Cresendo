@@ -20,7 +20,7 @@ export function LoginPage() {
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
   const [otpFor, setOtpFor] = useState<"login" | "signup-email">("login");
-  const [signupStep, setSignupStep] = useState<"form" | "phone-otp" | "email-otp">("form"); 
+  const [signupStep, setSignupStep] = useState<"form" | "email-otp">("form");
   const [canResendOtp, setCanResendOtp] = useState(true);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -111,10 +111,10 @@ export function LoginPage() {
         password,
       });
 
-      // Backend sends phone OTP first
+      // Email-only signup OTP flow
       setShowOtp(true);
       setOtpFor("signup-email");
-      setSignupStep("phone-otp");
+      setSignupStep("email-otp");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -136,22 +136,8 @@ export function LoginPage() {
 
       let response;
 
-      if (signupStep === "phone-otp") {
-        // Step 1: Verify phone OTP → backend sends email OTP
-        console.log('Verifying phone OTP...');
-        await authService.verifyPhoneOtp({
-          phone: mobile,
-          email: email,
-          otp,
-        });
-        // Phone verified, now need email OTP
-        console.log('Phone verified, email OTP sent. Moving to email-otp step.');
-        setOtp("");
-        setSignupStep("email-otp");
-        setLoading(false);
-        return; // Stay on OTP screen for email OTP
-      } else if (signupStep === "email-otp") {
-        // Step 2: Verify email OTP → creates user
+      if (signupStep === "email-otp") {
+        // Verify email OTP → creates user
         console.log('Verifying email OTP and creating user...');
         response = await authService.verifyEmailOtp({
           phone: mobile,
@@ -189,14 +175,6 @@ export function LoginPage() {
           await authService.resendEmailOtp({
             phone: mobile,
             email,
-          });
-        } else if (signupStep === "phone-otp") {
-          // Resend phone OTP by calling signup again
-          await authService.signup({
-            fullName,
-            email,
-            phone: mobile,
-            password,
           });
         } else {
           await authService.login({
@@ -346,7 +324,7 @@ export function LoginPage() {
                 disabled={loading}
                 className="w-full h-12 bg-black hover:bg-black/90 text-white font-black text-sm md:text-base rounded-none shadow-none disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest transition-all"
               >
-                {loading ? "PROCESSING..." : "CHECK YOUR SCORE →"}
+                {loading ? "PROCESSING..." : isSignUp ? "CREATE" : "SIGN IN"}
               </Button>
             </div>
 
@@ -364,7 +342,7 @@ export function LoginPage() {
                   }}
                   className="text-blue-600 underline underline-offset-4 hover:opacity-70 transition-opacity"
                 >
-                  {isSignUp ? "LOGIN" : "CREATE ACCOUNT →"}
+                  {isSignUp ? "SIGN IN" : "CREATE"}
                 </button>
               </p>
             )}
@@ -376,7 +354,7 @@ export function LoginPage() {
           <form onSubmit={handleOtpSubmit} className="space-y-8 mt-6 pt-10 border-t-[1.5px] border-black/10 animate-in fade-in slide-in-from-bottom-2">
             <div>
               <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-6 block">
-                {signupStep === "phone-otp" ? "ENTER PHONE OTP" : signupStep === "email-otp" ? "ENTER EMAIL OTP" : "ENTER VERIFICATION CODE"}
+                {signupStep === "email-otp" ? "ENTER EMAIL OTP" : "ENTER VERIFICATION CODE"}
               </Label>
               <div className="flex justify-center">
                 <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
@@ -391,7 +369,7 @@ export function LoginPage() {
                 </InputOTP>
               </div>
               <p className="text-[9px] md:text-[10px] text-gray-400 mt-6 font-black uppercase tracking-widest text-center">
-                {signupStep === "phone-otp" ? "OTP sent to your phone number." : signupStep === "email-otp" ? "OTP sent to your email address." : "An OTP has been dispatched to your identity."}
+                {signupStep === "email-otp" ? "OTP sent to your email address." : "An OTP has been dispatched to your identity."}
               </p>
             </div>
 

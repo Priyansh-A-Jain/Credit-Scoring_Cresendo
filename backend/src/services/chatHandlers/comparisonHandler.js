@@ -12,6 +12,7 @@
 
 import { getApplicantCardByApplicationId } from "../applicantFetchService.js";
 import { askGroundedCopilot }              from "../ollamaService.js";
+import LoanApplication                      from "../../models/LoanApplication.js";
 
 // ── Context builder ───────────────────────────────────────────────────────────
 
@@ -28,6 +29,27 @@ function fmtBool(v) {
 function fmtPct(v) {
   if (v === null || v === undefined) return "N/A";
   return `${(v * 100).toFixed(1)}%`;
+}
+
+const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
+const LOAN_CODE_RE = /^[a-z]\d{1,8}$/i;
+
+async function resolveToApplicationId(rawId) {
+  if (!rawId || typeof rawId !== "string") return null;
+  const candidate = rawId.trim();
+
+  if (OBJECT_ID_RE.test(candidate)) {
+    return candidate;
+  }
+
+  if (LOAN_CODE_RE.test(candidate)) {
+    const loan = await LoanApplication.findOne({ loanCode: candidate.toUpperCase() })
+      .select("_id")
+      .lean();
+    return loan?._id?.toString() || null;
+  }
+
+  return candidate;
 }
 
 /**
@@ -101,12 +123,41 @@ export async function comparisonHandler(applicationId, routedQuery) {
     };
   }
 
+  // Resolve incoming identifiers (ObjectId or loanCode) into application IDs
+  let resolvedIdA, resolvedIdB;
+  try {
+    [resolvedIdA, resolvedIdB] = await Promise.all([
+      resolveToApplicationId(idA),
+      resolveToApplicationId(idB),
+    ]);
+  } catch (err) {
+    return {
+      intent: "comparison",
+      answer: `Unable to resolve application identifiers for comparison: ${err.message}`,
+      sources: [],
+      contextType: "unsupported",
+      metadata: { error: err.message, idA, idB },
+    };
+  }
+
+  if (!resolvedIdA || !resolvedIdB) {
+    return {
+      intent: "comparison",
+      answer:
+        "Could not resolve one or both application references. " +
+        "Please verify the IDs or loan codes and try again.",
+      sources: [],
+      contextType: "unsupported",
+      metadata: { reason: "unresolved_identifiers", idA, idB, resolvedIdA, resolvedIdB },
+    };
+  }
+
   // Fetch both cards in parallel
   let cardA, cardB;
   try {
     [cardA, cardB] = await Promise.all([
-      getApplicantCardByApplicationId(idA),
-      getApplicantCardByApplicationId(idB),
+      getApplicantCardByApplicationId(resolvedIdA),
+      getApplicantCardByApplicationId(resolvedIdB),
     ]);
   } catch (err) {
     return {
@@ -121,7 +172,7 @@ export async function comparisonHandler(applicationId, routedQuery) {
   if (!cardA) {
     return {
       intent: "comparison",
-      answer: `Application ${idA} was not found. Please verify the ID.`,
+      answer: `Application ${idA} was not found. Please verify the ID/loan code.`,
       sources: [idA],
       contextType: "unsupported",
       metadata: { missingId: idA },
@@ -130,7 +181,7 @@ export async function comparisonHandler(applicationId, routedQuery) {
   if (!cardB) {
     return {
       intent: "comparison",
-      answer: `Application ${idB} was not found. Please verify the ID.`,
+      answer: `Application ${idB} was not found. Please verify the ID/loan code.`,
       sources: [idB],
       contextType: "unsupported",
       metadata: { missingId: idB },
