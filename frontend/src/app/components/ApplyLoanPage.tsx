@@ -98,6 +98,11 @@ export function ApplyLoanPage() {
   const [identityFile, setIdentityFile] = useState<File | null>(null);
   const [financialFile, setFinancialFile] = useState<File | null>(null);
 
+  // OCR State (additive — does not affect existing flow)
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<{ name?: string; dob?: string; idNumber?: string; identityVerified?: boolean } | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+
   // Education State
   const [courseName, setCourseName] = useState("");
   const [university, setUniversity] = useState("");
@@ -471,6 +476,35 @@ export function ApplyLoanPage() {
     return errors;
   };
 
+  // OCR upload handler — additive, does not change existing submit/validation
+  const handleIdentityFileChange = async (file: File | null) => {
+    setIdentityFile(file);
+    setOcrResult(null);
+    setOcrError(null);
+    if (!file) return;
+    setOcrLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const form = new FormData();
+      form.append('document', file);
+      const res = await fetch(`${API_BASE_URL}/loan/upload-document`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOcrResult({ name: data.name, dob: data.dob, idNumber: data.idNumber, identityVerified: data.identityVerified });
+      } else {
+        setOcrError(data.message || 'OCR failed');
+      }
+    } catch (e: any) {
+      setOcrError('Could not analyse document');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     // Validate required fields first
     const validationErrors = validateRequiredFields();
@@ -518,6 +552,8 @@ export function ApplyLoanPage() {
         purpose: loanType === 'education' ? (courseName || 'Education Loan') : (resolvedOccupation || "General"),
         dateOfBirth: dateOfBirth,
         age: age ? Number(age) : undefined,
+        // OCR identity verification result (additive signal for scoring)
+        identityVerified: ocrResult?.identityVerified ?? false,
         collateral: {
           type: getCollateralType(),
           estimatedValue: collateralEstimatedValue || loanAmount[0],
@@ -1558,6 +1594,28 @@ export function ApplyLoanPage() {
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Render specific docs based on occupation */}
 
+                    {/* Universal Aadhaar / PAN — OCR verified (images only, Textract AnalyzeID doesn't support PDF) */}
+                    <label className="block w-full cursor-pointer relative">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" onChange={(e) => handleIdentityFileChange(e.target.files?.[0] || null)} />
+                      <Card className={`bg-white border-dashed ${identityFile ? 'border-blue-600' : 'border-slate-300'} hover:border-blue-600 transition-colors group h-full`}>
+                        <CardContent className="p-4 flex items-center gap-4 h-full relative z-0 overflow-hidden">
+                          {identityFile && <div className="absolute inset-0 bg-blue-50 pointer-events-none" />}
+                          <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${identityFile ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-blue-100'}`}>
+                            {ocrResult?.identityVerified ? <CheckCircle2 className="w-5 h-5 text-blue-600" /> : <Shield className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />}
+                          </div>
+                          <div className="relative z-10 flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-slate-900 mb-0.5">Aadhaar / PAN Card</h4>
+                            {!identityFile && <p className="text-xs text-slate-500">JPG or PNG · auto-verified</p>}
+                            {identityFile && !ocrLoading && !ocrResult && !ocrError && <p className="text-xs text-slate-600 truncate">{identityFile.name}</p>}
+                            {ocrLoading && <p className="text-xs text-blue-500 mt-0.5">Analysing document…</p>}
+                            {ocrResult?.identityVerified && <p className="text-xs text-green-600 mt-0.5">✓ Verified{ocrResult.name ? ` · ${ocrResult.name}` : ''}{ocrResult.idNumber ? ` · ${ocrResult.idNumber}` : ''}</p>}
+                            {ocrResult && !ocrResult.identityVerified && !ocrError && <p className="text-xs text-amber-600 mt-0.5">⚠ Could not verify — check image clarity</p>}
+                            {ocrError && <p className="text-xs text-amber-600 mt-0.5">⚠ {ocrError}</p>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </label>
+
                     {/* Universal Bank Statement Upload */}
                     <label className="block w-full cursor-pointer relative">
                       <input type="file" className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" onChange={(e) => setFinancialFile(e.target.files?.[0] || null)} />
@@ -2082,13 +2140,16 @@ export function ApplyLoanPage() {
                       </div>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <label className="block w-full cursor-pointer relative">
-                          <input type="file" className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" onChange={(e) => setIdentityFile(e.target.files?.[0] || null)} />
+                          <input type="file" className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10" onChange={(e) => handleIdentityFileChange(e.target.files?.[0] || null)} />
                           <Card className={`bg-white border-dashed ${identityFile ? 'border-blue-600' : 'border-slate-300'} hover:border-blue-600 transition-colors group h-full`}>
                             <CardContent className="p-4 flex items-center gap-4 h-full relative overflow-hidden">
                               <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-slate-100 group-hover:bg-blue-100"><FileText className="w-5 h-5 text-slate-600 group-hover:text-blue-600" /></div>
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-slate-900 mb-0.5">Admission Letter</h4>
                                 <p className="text-xs text-slate-600 line-clamp-1">{identityFile ? identityFile.name : 'Offer letter or ID'}</p>
+                                {ocrLoading && <p className="text-xs text-blue-500 mt-0.5">Analysing document…</p>}
+                                {ocrResult?.identityVerified && <p className="text-xs text-green-600 mt-0.5">✓ Identity verified{ocrResult.name ? ` · ${ocrResult.name}` : ''}{ocrResult.idNumber ? ` · ${ocrResult.idNumber}` : ''}</p>}
+                                {ocrError && <p className="text-xs text-amber-600 mt-0.5">⚠ {ocrError}</p>}
                               </div>
                             </CardContent>
                           </Card>

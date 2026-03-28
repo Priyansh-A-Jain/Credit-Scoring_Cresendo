@@ -4,6 +4,10 @@ import redisClient from "../config/redis.js";
 // In-memory email OTP storage for development
 const inMemoryEmailOTP = new Map();
 
+const isEmailOtpFallbackEnabled = () =>
+  process.env.NODE_ENV === "development" ||
+  process.env.ALLOW_EMAIL_OTP_FALLBACK === "true";
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -89,13 +93,13 @@ export const sendEmailOTP = async (email) => {
     await transporter.sendMail(mailOptions);
     console.log(` Email sent successfully to ${email}`);
   } catch (error) {
-    console.error("Error sending email:", error.message);
-    if (process.env.NODE_ENV === "development") {
+    console.error("❌ Error sending email:", error.message);
+    if (isEmailOtpFallbackEnabled()) {
       console.warn(
-        "Email delivery failed in development; continuing with debug OTP"
+        "Email delivery failed; continuing with debug OTP fallback"
       );
       return {
-        message: "OTP generated (email delivery failed in development)",
+        message: "OTP generated (email delivery failed; fallback enabled)",
         otp,
         emailDelivery: "failed",
       };
@@ -105,7 +109,7 @@ export const sendEmailOTP = async (email) => {
 
   return {
     message: "OTP sent to email",
-    ...(process.env.NODE_ENV === "development" ? { otp } : {}),
+    ...(isEmailOtpFallbackEnabled() ? { otp } : {}),
   };
 };
 

@@ -28,6 +28,32 @@ export function AdminLoanApplications() {
   const [explainability, setExplainability] = useState<any | null>(null);
   const [explainabilityLoading, setExplainabilityLoading] = useState(false);
 
+  const STATUS_GROUPS: Record<string, string[]> = {
+    Pending: ["under_review", "pending"],
+    Approved: ["approved", "auto_approved", "accepted", "disbursed"],
+    Rejected: ["rejected", "auto_rejected", "declined"],
+  };
+
+  const matchesFilterStatus = (status: string, tab: string) => {
+    if (tab === "All") return true;
+    const group = STATUS_GROUPS[tab] || [];
+    return group.includes(status);
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    if (STATUS_GROUPS.Approved.includes(status)) return "bg-green-500/20 text-green-400";
+    if (STATUS_GROUPS.Pending.includes(status)) return "bg-yellow-500/20 text-yellow-400";
+    if (STATUS_GROUPS.Rejected.includes(status)) return "bg-red-500/20 text-red-400";
+    return "bg-gray-500/20 text-gray-400";
+  };
+
+  const getDisplayStatus = (status: string) => {
+    if (STATUS_GROUPS.Pending.includes(status)) return "Pending";
+    if (STATUS_GROUPS.Approved.includes(status)) return "Approved";
+    if (STATUS_GROUPS.Rejected.includes(status)) return "Rejected";
+    return status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown";
+  };
+
   useEffect(() => {
     fetchLoans();
 
@@ -225,8 +251,7 @@ export function AdminLoanApplications() {
       const statusMap: { [key: string]: string } = {
         'Pending': 'under_review',
         'Approved': 'approved',
-        'Rejected': 'rejected',
-        'Auto Rejected': 'auto_rejected'
+        'Rejected': 'rejected'
       };
       return statusMap[filterStatus] === app.status &&
         (app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -240,13 +265,11 @@ export function AdminLoanApplications() {
       'All': '',
       'Pending': 'under_review',
       'Approved': 'approved',
-      'Rejected': 'rejected',
-      'Auto Rejected': 'auto_rejected'
+      'Rejected': 'rejected'
     };
 
     if (status === "All") return loans.length;
-    const targetStatus = statusMap[status];
-    return loans.filter(app => app.status === targetStatus).length;
+    return loans.filter(app => matchesFilterStatus(app.status, status)).length;
   };
 
   const getRiskColor = (risk: string) => {
@@ -477,15 +500,14 @@ export function AdminLoanApplications() {
                           ? 'bg-green-50 border-green-300 text-green-700'
                           : loanApp.status === 'under_review'
                             ? 'bg-yellow-50 border-yellow-300 text-yellow-700'
-                            : loanApp.status === 'rejected' || loanApp.status === 'auto_rejected'
+                            : loanApp.status === 'rejected'
                               ? 'bg-red-50 border-red-300 text-red-600'
                               : 'bg-gray-50 border-gray-300 text-gray-600'
                           }`}>
                           {loanApp.status === 'under_review' ? 'PENDING' :
                             loanApp.status === 'approved' ? 'APPROVED' :
-                              loanApp.status === 'auto_rejected' ? 'AUTO REJECTED' :
-                                loanApp.status === 'rejected' ? 'REJECTED' :
-                                  loanApp.status.toUpperCase()}
+                              loanApp.status === 'rejected' ? 'REJECTED' :
+                                loanApp.status.toUpperCase()}
                         </span>
                       </td>
                     </tr>
@@ -596,6 +618,40 @@ export function AdminLoanApplications() {
                       <span className="text-[10px] font-black uppercase text-white/50 tracking-widest">Scoring Source</span>
                       <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">{loan.rawLoan?.features?.scoringSource || explainability?.decisionSummary?.scoringSource || 'N/A'}</span>
                     </div>
+                    {explainability.decisionSummary && (
+                      <div className="pt-2 border-t border-slate-200 space-y-2">
+                        <p className="text-xs font-semibold text-slate-700 uppercase">Decision Summary</p>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Recommended Decision</span>
+                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.decision || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Pre-screen Status</span>
+                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.preScreenStatus || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Manual Review</span>
+                          <span className="text-slate-900 font-semibold">{explainability.decisionSummary.manualReviewRequired ? 'Yes' : 'No'}</span>
+                        </div>
+                        {explainability.decisionSummary.decisionReason && (
+                          <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded p-2">
+                            {explainability.decisionSummary.decisionReason}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {Array.isArray(explainability.flags) && explainability.flags.length > 0 && (
+                      <div className="pt-2 border-t border-slate-200">
+                        <p className="text-xs font-semibold text-slate-700 mb-2 uppercase">Risk Flags</p>
+                        <div className="flex flex-wrap gap-1">
+                          {explainability.flags.slice(0, 8).map((flag: string, idx: number) => (
+                            <span key={idx} className="text-[11px] px-2 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                              {flag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {Array.isArray(explainability.explanationSummary) && explainability.explanationSummary.length > 0 && (
                       <div className="pt-2">
                         <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-3 border-l-2 border-blue-500 pl-2">Key Reasoning Factors</p>
