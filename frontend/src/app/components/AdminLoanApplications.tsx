@@ -28,6 +28,18 @@ export function AdminLoanApplications() {
   const [explainability, setExplainability] = useState<any | null>(null);
   const [explainabilityLoading, setExplainabilityLoading] = useState(false);
 
+  const formatRiskFlag = (flag: string) => {
+    if (!flag) return "unknown_flag";
+    if (flag.startsWith("ml_dependency_missing:")) {
+      const dep = flag.split(":")[1] || "unknown";
+      return `ML dependency missing (${dep})`;
+    }
+    if (flag === "ml_timeout") return "ML inference timed out";
+    if (flag === "ml_invalid_output") return "ML returned invalid output";
+    if (flag === "ml_inference_failed") return "ML inference failed";
+    return flag.length > 72 ? `${flag.slice(0, 72)}...` : flag;
+  };
+
   const STATUS_GROUPS: Record<string, string[]> = {
     Pending: ["under_review", "pending"],
     Approved: ["approved", "auto_approved", "accepted", "disbursed", "closed"],
@@ -139,6 +151,8 @@ export function AdminLoanApplications() {
             rawLoan: loan,
             customDetails: {
               "Loan Type": loan.loanType,
+              "Applicant Type": loan.applicantType || "banked",
+              "Underwriting Path": loan.features?.underwritingPath || "banked_model",
               "Amount": `₹${(loan.requestedAmount / 100000).toFixed(1)}L`,
               "Tenure": `${loan.requestedTenure} months`,
               "Purpose": loan.purpose,
@@ -147,7 +161,17 @@ export function AdminLoanApplications() {
               "Decision": loan.features?.decision || 'Hold',
               "Default Probability": loan.features?.probabilityOfDefault != null ? `${(loan.features.probabilityOfDefault * 100).toFixed(1)}%` : 'N/A',
               "Pre-screen": loan.features?.preScreenStatus || 'N/A',
-              "Decision Reason": loan.features?.decisionReason || 'N/A'
+              "Decision Reason": loan.features?.decisionReason || 'N/A',
+              "Alt Completeness": loan.alternateUnderwriting?.dataCompletenessScore != null
+                ? `${Math.round(loan.alternateUnderwriting.dataCompletenessScore * 100)}%`
+                : "N/A",
+              "Alt Confidence": loan.alternateUnderwriting?.confidenceLevel || "N/A"
+              ,"Trust Score": loan.alternateUnderwriting?.explanationMetadata?.trustScore != null
+                ? `${Math.round(loan.alternateUnderwriting.explanationMetadata.trustScore * 100)}%`
+                : "N/A"
+              ,"Fraud Risk": loan.alternateUnderwriting?.explanationMetadata?.fraudRiskScore != null
+                ? `${Math.round(loan.alternateUnderwriting.explanationMetadata.fraudRiskScore * 100)}%`
+                : "N/A"
             }
           };
         });
@@ -266,6 +290,8 @@ export function AdminLoanApplications() {
         rawLoan: freshLoan,
         customDetails: {
           "Loan Type": freshLoan.loanType,
+          "Applicant Type": freshLoan.applicantType || "banked",
+          "Underwriting Path": freshLoan.features?.underwritingPath || "banked_model",
           "Amount": `₹${(freshLoan.requestedAmount / 100000).toFixed(1)}L`,
           "Tenure": `${freshLoan.requestedTenure} months`,
           "Purpose": freshLoan.purpose,
@@ -274,7 +300,17 @@ export function AdminLoanApplications() {
           "Decision": freshLoan.features?.decision || 'Hold',
           "Default Probability": freshLoan.features?.probabilityOfDefault != null ? `${(freshLoan.features.probabilityOfDefault * 100).toFixed(1)}%` : 'N/A',
           "Pre-screen": freshLoan.features?.preScreenStatus || 'N/A',
-          "Decision Reason": freshLoan.features?.decisionReason || 'N/A'
+          "Decision Reason": freshLoan.features?.decisionReason || 'N/A',
+          "Alt Completeness": freshLoan.alternateUnderwriting?.dataCompletenessScore != null
+            ? `${Math.round(freshLoan.alternateUnderwriting.dataCompletenessScore * 100)}%`
+            : "N/A",
+          "Alt Confidence": freshLoan.alternateUnderwriting?.confidenceLevel || "N/A"
+          ,"Trust Score": freshLoan.alternateUnderwriting?.explanationMetadata?.trustScore != null
+            ? `${Math.round(freshLoan.alternateUnderwriting.explanationMetadata.trustScore * 100)}%`
+            : "N/A"
+          ,"Fraud Risk": freshLoan.alternateUnderwriting?.explanationMetadata?.fraudRiskScore != null
+            ? `${Math.round(freshLoan.alternateUnderwriting.explanationMetadata.fraudRiskScore * 100)}%`
+            : "N/A"
         }
       };
 
@@ -783,7 +819,7 @@ export function AdminLoanApplications() {
                         <div className="flex flex-wrap gap-1">
                           {explainability.flags.slice(0, 8).map((flag: string, idx: number) => (
                             <span key={idx} className="text-[11px] px-2 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300">
-                              {flag}
+                              {formatRiskFlag(flag)}
                             </span>
                           ))}
                         </div>

@@ -18,6 +18,7 @@ export function ApplyLoanPage() {
   const [step, setStep] = useState(0);
 
   // Form State
+  const [applicantType, setApplicantType] = useState<"banked" | "unbanked" | null>(null);
   const [loanType, setLoanType] = useState<string | null>(null);
   const [incomeRange, setIncomeRange] = useState("");
   const [hasExistingLoan, setHasExistingLoan] = useState("no");
@@ -141,6 +142,22 @@ export function ApplyLoanPage() {
   const [stepError, setStepError] = useState<string | null>(null);
   const [assetsConfirmed, setAssetsConfirmed] = useState(false);
   const [finalConfirmed, setFinalConfirmed] = useState(false);
+  const [alternateDataConsent, setAlternateDataConsent] = useState(false);
+  const [upiMonthlyInflow, setUpiMonthlyInflow] = useState("");
+  const [upiMonthlyOutflow, setUpiMonthlyOutflow] = useState("");
+  const [avgMonthlyTransactionCount, setAvgMonthlyTransactionCount] = useState("");
+  const [transactionRegularity, setTransactionRegularity] = useState("");
+  const [upiInflowVariance, setUpiInflowVariance] = useState("");
+  const [gstConsistency, setGstConsistency] = useState("");
+  const [utilityPaymentRegularity, setUtilityPaymentRegularity] = useState("");
+  const [rentPaymentConsistency, setRentPaymentConsistency] = useState("");
+  const [declaredMonthlyIncome, setDeclaredMonthlyIncome] = useState("");
+  const [employmentOrBusinessType, setEmploymentOrBusinessType] = useState("");
+  const [monthsUpiHistory, setMonthsUpiHistory] = useState("");
+  const [monthsGstHistory, setMonthsGstHistory] = useState("");
+  const [monthsUtilityHistory, setMonthsUtilityHistory] = useState("");
+  const [monthsRentHistory, setMonthsRentHistory] = useState("");
+  const [showAdvancedUnbanked, setShowAdvancedUnbanked] = useState(false);
 
   const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -166,6 +183,7 @@ export function ApplyLoanPage() {
     if (savedSession) {
       // Restore all state from session
       if (savedSession.step) setStep(savedSession.step);
+      if (savedSession.applicantType) setApplicantType(savedSession.applicantType as "banked" | "unbanked");
       if (savedSession.loanType) setLoanType(savedSession.loanType);
       if (savedSession.incomeRange) setIncomeRange(savedSession.incomeRange);
       if (savedSession.hasExistingLoan) setHasExistingLoan(savedSession.hasExistingLoan);
@@ -196,6 +214,21 @@ export function ApplyLoanPage() {
       if (savedSession.businessType) setBusinessType(savedSession.businessType);
       if (savedSession.faceScanImage) setFaceScanImage(savedSession.faceScanImage);
       if (savedSession.coAppFaceScanImage) setCoAppFaceScanImage(savedSession.coAppFaceScanImage);
+      if (savedSession.alternateDataConsent) setAlternateDataConsent(Boolean(savedSession.alternateDataConsent));
+      if (savedSession.upiMonthlyInflow) setUpiMonthlyInflow(savedSession.upiMonthlyInflow);
+      if (savedSession.upiMonthlyOutflow) setUpiMonthlyOutflow(savedSession.upiMonthlyOutflow);
+      if (savedSession.avgMonthlyTransactionCount) setAvgMonthlyTransactionCount(savedSession.avgMonthlyTransactionCount);
+      if (savedSession.transactionRegularity) setTransactionRegularity(savedSession.transactionRegularity);
+      if (savedSession.upiInflowVariance) setUpiInflowVariance(savedSession.upiInflowVariance);
+      if (savedSession.gstConsistency) setGstConsistency(savedSession.gstConsistency);
+      if (savedSession.utilityPaymentRegularity) setUtilityPaymentRegularity(savedSession.utilityPaymentRegularity);
+      if (savedSession.rentPaymentConsistency) setRentPaymentConsistency(savedSession.rentPaymentConsistency);
+      if (savedSession.declaredMonthlyIncome) setDeclaredMonthlyIncome(savedSession.declaredMonthlyIncome);
+      if (savedSession.employmentOrBusinessType) setEmploymentOrBusinessType(savedSession.employmentOrBusinessType);
+      if (savedSession.monthsUpiHistory) setMonthsUpiHistory(savedSession.monthsUpiHistory);
+      if (savedSession.monthsGstHistory) setMonthsGstHistory(savedSession.monthsGstHistory);
+      if (savedSession.monthsUtilityHistory) setMonthsUtilityHistory(savedSession.monthsUtilityHistory);
+      if (savedSession.monthsRentHistory) setMonthsRentHistory(savedSession.monthsRentHistory);
 
       console.log("✓ Loan application session restored");
     }
@@ -239,6 +272,7 @@ export function ApplyLoanPage() {
     if (loanType && !disableAutoSave) { // Only save if a loan type has been selected AND not submitting
       loanSessionService.saveFormState({
         step,
+        applicantType,
         loanType,
         incomeRange,
         hasExistingLoan,
@@ -269,9 +303,24 @@ export function ApplyLoanPage() {
         businessType,
         faceScanImage,
         coAppFaceScanImage,
+        alternateDataConsent,
+        upiMonthlyInflow,
+        upiMonthlyOutflow,
+        avgMonthlyTransactionCount,
+        transactionRegularity,
+        upiInflowVariance,
+        gstConsistency,
+        utilityPaymentRegularity,
+        rentPaymentConsistency,
+        declaredMonthlyIncome,
+        employmentOrBusinessType,
+        monthsUpiHistory,
+        monthsGstHistory,
+        monthsUtilityHistory,
+        monthsRentHistory,
       });
     }
-  }, [step, loanType, incomeRange, hasExistingLoan, existingEmi, dependents, coApplicant, loanAmount, tenure, occupation, gender, maritalStatus, familyMembersCount, childrenCount, dateOfBirth, age, courseName, university, studyLocation, courseDuration, homeArea, bhk, homeLocation, estimatedPrice, autoType, autoModel, autoPrice, autoDetails, businessType, faceScanImage, coAppFaceScanImage, disableAutoSave]);
+  }, [step, applicantType, loanType, incomeRange, hasExistingLoan, existingEmi, dependents, coApplicant, loanAmount, tenure, occupation, gender, maritalStatus, familyMembersCount, childrenCount, dateOfBirth, age, courseName, university, studyLocation, courseDuration, homeArea, bhk, homeLocation, estimatedPrice, autoType, autoModel, autoPrice, autoDetails, businessType, faceScanImage, coAppFaceScanImage, alternateDataConsent, upiMonthlyInflow, upiMonthlyOutflow, avgMonthlyTransactionCount, transactionRegularity, upiInflowVariance, gstConsistency, utilityPaymentRegularity, rentPaymentConsistency, declaredMonthlyIncome, employmentOrBusinessType, monthsUpiHistory, monthsGstHistory, monthsUtilityHistory, monthsRentHistory, disableAutoSave]);
 
   // Camera Handlers
   const startCamera = (forWhom: "applicant" | "coApplicant") => {
@@ -415,6 +464,11 @@ export function ApplyLoanPage() {
   // Mock checking EMI risk
   // Assume generic income mapping for calculation purposes
   const getIncomeValue = () => {
+    if (applicantType === "unbanked") {
+      const declared = Number(declaredMonthlyIncome || 0);
+      const inflow = Number(upiMonthlyInflow || 0);
+      return Math.max(declared, inflow, 30000);
+    }
     if (incomeRange === "<2L") return 15000;
     if (incomeRange === "2-5L") return 30000;
     if (incomeRange === "5-10L") return 60000;
@@ -426,7 +480,12 @@ export function ApplyLoanPage() {
   const emiPercentage = (emi / assumedMonthlyIncome) * 100;
 
   const getEmiRisk = () => {
-    if (!incomeRange) return { text: "Select income to see risk", color: "text-gray-400", bg: "bg-gray-400/10" };
+    if (applicantType !== "unbanked" && !incomeRange) {
+      return { text: "Select income to see risk", color: "text-gray-400", bg: "bg-gray-400/10" };
+    }
+    if (applicantType === "unbanked" && !declaredMonthlyIncome && !upiMonthlyInflow) {
+      return { text: "Enter declared income or UPI inflow to see risk", color: "text-gray-400", bg: "bg-gray-400/10" };
+    }
     if (emiPercentage < 30) return { text: "Comfortable (below 30%)", color: "text-green-400", bg: "bg-green-400/10" };
     if (emiPercentage <= 40) return { text: "Manageable (30-40%)", color: "text-yellow-400", bg: "bg-yellow-400/10" };
     return { text: "High risk (above 40%)", color: "text-red-400", bg: "bg-red-400/10" };
@@ -440,7 +499,8 @@ export function ApplyLoanPage() {
     if (!loanType) errors.push("Loan type is required");
     if (!loanAmount[0]) errors.push("Loan amount is required");
     if (!tenure) errors.push("Tenure is required");
-    if (!incomeRange) errors.push("Income range is required");
+    if (applicantType !== "unbanked" && !incomeRange) errors.push("Income range is required");
+    if (!applicantType) errors.push("Applicant type is required");
 
     // Personal details
     if (!dateOfBirth) errors.push("Date of birth is required");
@@ -471,6 +531,19 @@ export function ApplyLoanPage() {
 
     if (loanType === 'business') {
       if (!businessType) errors.push("Business type (MSME/Large) is required for business loans");
+    }
+
+    if (applicantType === "unbanked") {
+      if (!alternateDataConsent) errors.push("Alternate data consent is required");
+      if (!upiMonthlyOutflow) errors.push("Monthly UPI outflow is required");
+      if (!avgMonthlyTransactionCount)
+        errors.push("Average monthly transaction count is required");
+      if (!transactionRegularity)
+        errors.push("Transaction regularity score is required");
+      if (!declaredMonthlyIncome && !upiMonthlyInflow)
+        errors.push("Monthly inflow or declared income is required");
+      if (!monthsUpiHistory && !monthsUtilityHistory)
+        errors.push("Months of history is required (UPI or Utility)");
     }
 
     return errors;
@@ -535,6 +608,10 @@ export function ApplyLoanPage() {
             loanAmount[0];
 
       const resolvedOccupation = loanType === 'education' ? (occupation || 'Student') : occupation;
+      const resolvedIncomeAnnual =
+        applicantType === "unbanked"
+          ? (declaredMonthlyIncome ? Number(declaredMonthlyIncome) * 12 : null)
+          : mapIncomeRangeToAnnual(incomeRange);
       const educationDetails = loanType === 'education'
         ? {
           courseName,
@@ -546,6 +623,7 @@ export function ApplyLoanPage() {
 
       // Prepare loan application data for backend
       const applicationPayload = {
+        applicantType,
         loanType,
         requestedAmount: loanAmount[0],
         requestedTenure: Number(tenure),
@@ -560,7 +638,7 @@ export function ApplyLoanPage() {
         },
         applicantProfile: {
           occupation: resolvedOccupation || null,
-          incomeAnnual: mapIncomeRangeToAnnual(incomeRange),
+          incomeAnnual: resolvedIncomeAnnual,
           incomeType: deriveIncomeTypeForModel(resolvedOccupation),
           familyMembersCount: familyMembersCount ? Number(familyMembersCount) : null,
           childrenCount: childrenCount ? Number(childrenCount) : null,
@@ -569,6 +647,47 @@ export function ApplyLoanPage() {
           hasExistingLoan,
           existingEmi: existingEmi ? Number(existingEmi) : null,
         },
+        ...(applicantType === "unbanked" && {
+          alternateDataConsent,
+          alternateData: {
+            upi: {
+              monthlyInflow: upiMonthlyInflow ? Number(upiMonthlyInflow) : 0,
+              monthlyOutflow: upiMonthlyOutflow ? Number(upiMonthlyOutflow) : 0,
+              avgMonthlyTransactionCount: avgMonthlyTransactionCount
+                ? Number(avgMonthlyTransactionCount)
+                : 0,
+              transactionRegularity: transactionRegularity
+                ? Number(transactionRegularity)
+                : 0,
+              inflowVariance: upiInflowVariance ? Number(upiInflowVariance) : 0,
+            },
+            gst: {
+              filingConsistency: gstConsistency ? Number(gstConsistency) : 0,
+            },
+            utility: {
+              paymentRegularity: utilityPaymentRegularity
+                ? Number(utilityPaymentRegularity)
+                : 0,
+            },
+            rent: {
+              paymentConsistency: rentPaymentConsistency
+                ? Number(rentPaymentConsistency)
+                : 0,
+            },
+            monthsOfHistory: {
+              upi: monthsUpiHistory ? Number(monthsUpiHistory) : 0,
+              gst: monthsGstHistory ? Number(monthsGstHistory) : 0,
+              utility: monthsUtilityHistory ? Number(monthsUtilityHistory) : 0,
+              rent: monthsRentHistory ? Number(monthsRentHistory) : 0,
+            },
+            declaredIncome: {
+              monthlyIncome: declaredMonthlyIncome
+                ? Number(declaredMonthlyIncome)
+                : 0,
+            },
+            employmentType: employmentOrBusinessType || null,
+          },
+        }),
         ...(loanType === 'education' && { educationDetails }),
         ...(loanType === 'home' && {
           homeDetails: {
@@ -616,6 +735,7 @@ export function ApplyLoanPage() {
 
         // Reset all form state immediately
         setStep(0);
+        setApplicantType(null);
         setLoanType(null);
         setIncomeRange("");
         setHasExistingLoan("no");
@@ -631,6 +751,21 @@ export function ApplyLoanPage() {
         setChildrenCount("");
         setDateOfBirth("");
         setAge("");
+        setAlternateDataConsent(false);
+        setUpiMonthlyInflow("");
+        setUpiMonthlyOutflow("");
+        setAvgMonthlyTransactionCount("");
+        setTransactionRegularity("");
+        setUpiInflowVariance("");
+        setGstConsistency("");
+        setUtilityPaymentRegularity("");
+        setRentPaymentConsistency("");
+        setDeclaredMonthlyIncome("");
+        setEmploymentOrBusinessType("");
+        setMonthsUpiHistory("");
+        setMonthsGstHistory("");
+        setMonthsUtilityHistory("");
+        setMonthsRentHistory("");
         console.log('Form state reset');
 
         // Navigate to My Loans to show submitted application
@@ -664,7 +799,8 @@ export function ApplyLoanPage() {
       if (!dateOfBirth) errors.push("- Date of Birth");
       if (!gender) errors.push("- Gender");
       if (!maritalStatus) errors.push("- Marital Status");
-      if (!incomeRange) errors.push("- Income Range");
+      if (applicantType !== "unbanked" && !incomeRange) errors.push("- Income Range");
+      if (applicantType === "unbanked" && !alternateDataConsent) errors.push("- Alternate data consent");
     } else if (step === 2) {
       if (loanType === 'education') {
         if (!courseName) errors.push("- Course Name");
@@ -798,12 +934,52 @@ export function ApplyLoanPage() {
             </div>
 
             <div className="pt-4">
+              <h2 className="text-xs font-black tracking-[0.3em] uppercase mb-4 text-black/40">SELECT CREDIT PROFILE</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setApplicantType("banked");
+                    setStepError(null);
+                  }}
+                  className={`text-left p-6 border-[1.5px] transition-all ${
+                    applicantType === "banked"
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-black bg-white"
+                  }`}
+                >
+                  <p className="font-black text-sm uppercase tracking-wide">I have formal credit history (Banked)</p>
+                  <p className="text-xs text-black/60 mt-2 font-bold">Use existing bureau + profile based underwriting.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setApplicantType("unbanked");
+                    setStepError(null);
+                  }}
+                  className={`text-left p-6 border-[1.5px] transition-all ${
+                    applicantType === "unbanked"
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-black bg-white"
+                  }`}
+                >
+                  <p className="font-black text-sm uppercase tracking-wide">I do not have formal credit history (Unbanked)</p>
+                  <p className="text-xs text-black/60 mt-2 font-bold">Get assessed on UPI, utility and alternate cashflow behavior.</p>
+                </button>
+              </div>
               <h2 className="text-xs font-black tracking-[0.3em] uppercase mb-8 text-black/40">SELECT LOAN TYPE</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {loanOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => { setLoanType(option.id); nextStep(); }}
+                    onClick={() => {
+                      if (!applicantType) {
+                        setStepError("Select banked or unbanked before loan type");
+                        return;
+                      }
+                      setLoanType(option.id);
+                      nextStep();
+                    }}
                     className="text-left group p-8 md:p-10 flex flex-col gap-5 bg-white border-[1.5px] border-black hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all duration-300 cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
@@ -820,6 +996,9 @@ export function ApplyLoanPage() {
                   </button>
                 ))}
               </div>
+              {stepError && (
+                <p className="text-xs font-bold text-red-700 mt-4 uppercase tracking-wide">{stepError}</p>
+              )}
             </div>
           </div>
         )}
@@ -934,20 +1113,58 @@ export function ApplyLoanPage() {
                     <div className="space-y-4 pt-4 border-t border-slate-200">
                       <h3 className="text-sm font-medium text-slate-700">Financial Profile</h3>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-slate-600 text-xs">Annual Income Range <span className="text-red-500">*</span></Label>
-                        <Select value={incomeRange} onValueChange={setIncomeRange}>
-                          <SelectTrigger className="bg-white border-slate-300 text-slate-900 w-full">
-                            <SelectValue placeholder="Select income range" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white border-slate-300 text-slate-900">
-                            <SelectItem value="<2L">Less than ₹2 Lakhs</SelectItem>
-                            <SelectItem value="2-5L">₹2 - ₹5 Lakhs</SelectItem>
-                            <SelectItem value="5-10L">₹5 - ₹10 Lakhs</SelectItem>
-                            <SelectItem value=">10L">Above ₹10 Lakhs</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {applicantType !== "unbanked" ? (
+                        <div className="space-y-1.5">
+                          <Label className="text-slate-600 text-xs">Annual Income Range <span className="text-red-500">*</span></Label>
+                          <Select value={incomeRange} onValueChange={setIncomeRange}>
+                            <SelectTrigger className="bg-white border-slate-300 text-slate-900 w-full">
+                              <SelectValue placeholder="Select income range" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-slate-300 text-slate-900">
+                              <SelectItem value="<2L">Less than ₹2 Lakhs</SelectItem>
+                              <SelectItem value="2-5L">₹2 - ₹5 Lakhs</SelectItem>
+                              <SelectItem value="5-10L">₹5 - ₹10 Lakhs</SelectItem>
+                              <SelectItem value=">10L">Above ₹10 Lakhs</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 border border-blue-200 bg-blue-50 p-4">
+                          <Label className="text-slate-700 text-xs font-bold">Alternate underwriting inputs (Unbanked)</Label>
+                          <p className="text-[11px] text-slate-600">Start with only required basics. Add advanced details only if available.</p>
+                          <div className="grid grid-cols-2 gap-3 pt-2">
+                            <Input placeholder="UPI monthly inflow (optional)" value={upiMonthlyInflow} onChange={(e) => setUpiMonthlyInflow(e.target.value)} />
+                            <Input placeholder="UPI monthly outflow *" value={upiMonthlyOutflow} onChange={(e) => setUpiMonthlyOutflow(e.target.value)} />
+                            <Input placeholder="Avg monthly tx count *" value={avgMonthlyTransactionCount} onChange={(e) => setAvgMonthlyTransactionCount(e.target.value)} />
+                            <Input placeholder="Txn regularity 0-1 *" value={transactionRegularity} onChange={(e) => setTransactionRegularity(e.target.value)} />
+                            <Input placeholder="Declared monthly income" value={declaredMonthlyIncome} onChange={(e) => setDeclaredMonthlyIncome(e.target.value)} />
+                            <Input placeholder="Employment/business type" value={employmentOrBusinessType} onChange={(e) => setEmploymentOrBusinessType(e.target.value)} />
+                            <Input placeholder="Months UPI history *" value={monthsUpiHistory} onChange={(e) => setMonthsUpiHistory(e.target.value)} />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowAdvancedUnbanked((prev) => !prev)}
+                            className="text-[11px] font-black uppercase tracking-wider text-blue-700 pt-2"
+                          >
+                            {showAdvancedUnbanked ? "Hide advanced details" : "Add advanced details (optional)"}
+                          </button>
+                          {showAdvancedUnbanked && (
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                              <Input placeholder="UPI inflow variance (0-2)" value={upiInflowVariance} onChange={(e) => setUpiInflowVariance(e.target.value)} />
+                              <Input placeholder="GST consistency 0-1" value={gstConsistency} onChange={(e) => setGstConsistency(e.target.value)} />
+                              <Input placeholder="Utility regularity 0-1" value={utilityPaymentRegularity} onChange={(e) => setUtilityPaymentRegularity(e.target.value)} />
+                              <Input placeholder="Rent consistency 0-1" value={rentPaymentConsistency} onChange={(e) => setRentPaymentConsistency(e.target.value)} />
+                              <Input placeholder="Months utility history" value={monthsUtilityHistory} onChange={(e) => setMonthsUtilityHistory(e.target.value)} />
+                              <Input placeholder="Months GST history" value={monthsGstHistory} onChange={(e) => setMonthsGstHistory(e.target.value)} />
+                              <Input placeholder="Months rent history" value={monthsRentHistory} onChange={(e) => setMonthsRentHistory(e.target.value)} />
+                            </div>
+                          )}
+                          <label className="flex items-center gap-2 text-xs font-bold pt-2">
+                            <input type="checkbox" checked={alternateDataConsent} onChange={(e) => setAlternateDataConsent(e.target.checked)} />
+                            I consent to alternate data usage for underwriting
+                          </label>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">

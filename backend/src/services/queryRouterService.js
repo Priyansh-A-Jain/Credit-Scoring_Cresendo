@@ -99,7 +99,7 @@ const INTENT_RULES = [
     confidence: "high",
     test: (q) =>
       /\b(why|reason|explain|what caused|what is (the )?reason|basis|rationale|justif|what does (it|this|the) mean|how (was|is|did))\b/.test(q) &&
-      /\b(hold|reject(ed)?|approv(ed|al)|risk|high risk|low risk|score|decision|on hold|under review|declined|eligible amount|amount lower|less(er)? amount|difference)\b/.test(q),
+      /\b(hold|reject(ed)?|approv(e|ed|al)|risk|high risk|low risk|score|decision|on hold|under review|declined|eligible amount|amount lower|less(er)? amount|difference)\b/.test(q),
   },
 
   // ── 5. applicant_lookup ───────────────────────────────────────────────────
