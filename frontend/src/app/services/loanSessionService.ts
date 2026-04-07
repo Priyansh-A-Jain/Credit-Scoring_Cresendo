@@ -61,6 +61,7 @@ interface LoanFormState {
   monthsGstHistory: string;
   monthsUtilityHistory: string;
   monthsRentHistory: string;
+  quickApplyUnbanked: boolean;
 }
 
 const SESSION_KEY = "loan_application_session";

@@ -286,6 +286,7 @@ function buildAlternateUnderwriting(alt = {}, requestedAmount, requestedTenure) 
 
 function validateAlternateDataPayload(alt = {}) {
   const errors = [];
+  const quickApply = Boolean(alt?.quickApply);
   const monthlyInflow = toNonNegativeNumber(alt?.upi?.monthlyInflow, -1);
   const monthlyOutflow = toNonNegativeNumber(alt?.upi?.monthlyOutflow, -1);
   const txCount = toNonNegativeNumber(alt?.upi?.avgMonthlyTransactionCount, -1);
@@ -299,10 +300,10 @@ function validateAlternateDataPayload(alt = {}) {
   if (monthlyInflow < 0 && declaredMonthlyIncome < 0) {
     errors.push("Provide monthly UPI inflow or declared monthly income");
   }
-  if (monthlyOutflow < 0) {
+  if (!quickApply && monthlyOutflow < 0) {
     errors.push("Provide monthly UPI outflow summary");
   }
-  if (txCount < 0) {
+  if (!quickApply && txCount < 0) {
     errors.push("Provide average monthly transaction count");
   }
   if (monthsUpi < 0 && monthsUtility < 0) {
