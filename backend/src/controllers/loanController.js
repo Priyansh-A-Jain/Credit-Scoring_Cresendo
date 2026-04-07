@@ -320,6 +320,65 @@ function summarizeMlError(error) {
   return "ml_inference_failed";
 }
 
+function buildUserDecisionExplanation({
+  decision,
+  applicantType,
+  preScreen,
+  alternateUnderwriting,
+}) {
+  const flags = Array.isArray(preScreen?.flags) ? preScreen.flags : [];
+  const reasons = [];
+  const nextSteps = [];
+
+  if (decision?.riskLevel === "high") reasons.push("Risk level is currently high.");
+  if (decision?.probabilityOfDefault >= 0.5) {
+    reasons.push("Estimated default probability is elevated.");
+  }
+  if (flags.includes("loan_to_income_high") || flags.includes("loan_to_income_extreme")) {
+    reasons.push("Requested amount is high relative to current income profile.");
+    nextSteps.push("Apply for a smaller amount or longer tenure to reduce EMI burden.");
+  }
+  if (flags.includes("identity_unverified")) {
+    reasons.push("Identity could not be fully verified.");
+    nextSteps.push("Upload a clear ID document and complete verification.");
+  }
+  if (flags.includes("high_amount_without_collateral")) {
+    reasons.push("High amount requested without collateral support.");
+    nextSteps.push("Add collateral details or reduce requested amount.");
+  }
+
+  if (applicantType === "unbanked" && alternateUnderwriting) {
+    if (alternateUnderwriting.reliabilityFlag === "insufficient_data") {
+      reasons.push("Alternate data is insufficient for a confident decision.");
+      nextSteps.push("Add at least 6 months of UPI or utility payment history.");
+    }
+    if ((alternateUnderwriting.warnings || []).includes("high_cashflow_variance")) {
+      reasons.push("Cashflow pattern appears irregular.");
+      nextSteps.push("Provide stable monthly inflow records and regular payment evidence.");
+    }
+  }
+
+  if (!reasons.length) {
+    reasons.push("Application needs manual verification before final decision.");
+  }
+  if (!nextSteps.length) {
+    nextSteps.push("Keep profile and income details updated, then re-apply.");
+  }
+
+  const isRejected = decision?.decision === "Reject" || decision?.status === "auto_rejected";
+  const title = isRejected ? "Why your loan was not approved" : "Why your loan is under review";
+  const summary = isRejected
+    ? "Your application did not meet current risk checks. You can improve and re-apply."
+    : "Your application is promising but needs a few more checks before final approval.";
+
+  return {
+    title,
+    summary,
+    reasons: reasons.slice(0, 4),
+    nextSteps: nextSteps.slice(0, 4),
+  };
+}
+
 function inferUserCategory({
   borrowerProfile,
   applicationInput = {},
@@ -1102,6 +1161,12 @@ export const applyForLoan = async (req, res) => {
       alternateWarnings: alternateUnderwriting?.warnings || [],
       alternateConfidence: alternateUnderwriting?.confidenceLevel || null,
       alternateReliabilityFlag: alternateUnderwriting?.reliabilityFlag || null,
+      userDecisionExplanation: buildUserDecisionExplanation({
+        decision,
+        applicantType,
+        preScreen,
+        alternateUnderwriting,
+      }),
     };
 
     if (alternateUnderwriting) {

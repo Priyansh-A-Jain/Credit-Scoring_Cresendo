@@ -116,6 +116,10 @@ export function MyLoansPage() {
             submittedAt: loan.submittedAt,
             backendStatus,
             displayStatus,
+            rejectionReason:
+              loan.adminDecision?.rejectionReason ||
+              loan.features?.decisionReason ||
+              null,
             emi: Math.round(emi),
             totalPayable,
             remainingAmount: totalPayable,
@@ -267,6 +271,10 @@ export function MyLoansPage() {
         submittedAt: freshLoan.submittedAt,
         backendStatus,
         displayStatus,
+        rejectionReason:
+          freshLoan.adminDecision?.rejectionReason ||
+          freshLoan.features?.decisionReason ||
+          null,
         emi: Math.round(
           ((safeNumber(freshLoan.requestedAmount, 0) *
             (safeNumber(freshLoan.aiAnalysis?.suggestedInterestRate, 12.5) / 100 / 12) *
@@ -551,6 +559,36 @@ export function MyLoansPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* User-facing decision explanation */}
+                {selectedLoan.features?.userDecisionExplanation && (
+                  <div className="bg-blue-50 p-5 border-[1.5px] border-blue-700 shadow-[4px_4px_0_0_rgba(37,99,235,0.35)]">
+                    <h3 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] mb-3 border-b border-blue-300 pb-2">
+                      {selectedLoan.features.userDecisionExplanation.title || "Decision explanation"}
+                    </h3>
+                    <p className="text-sm text-blue-900/90 font-semibold mb-3">
+                      {selectedLoan.features.userDecisionExplanation.summary}
+                    </p>
+                    {Array.isArray(selectedLoan.features.userDecisionExplanation.reasons) &&
+                      selectedLoan.features.userDecisionExplanation.reasons.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-800 mb-1">Why</p>
+                          {selectedLoan.features.userDecisionExplanation.reasons.map((reason: string, idx: number) => (
+                            <p key={idx} className="text-xs text-blue-900 mb-1">- {reason}</p>
+                          ))}
+                        </div>
+                      )}
+                    {Array.isArray(selectedLoan.features.userDecisionExplanation.nextSteps) &&
+                      selectedLoan.features.userDecisionExplanation.nextSteps.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-800 mb-1">What to do next</p>
+                          {selectedLoan.features.userDecisionExplanation.nextSteps.map((step: string, idx: number) => (
+                            <p key={idx} className="text-xs text-blue-900 mb-1">- {step}</p>
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                )}
 
                 {/* Dynamic Configuration per Status */}
                 
