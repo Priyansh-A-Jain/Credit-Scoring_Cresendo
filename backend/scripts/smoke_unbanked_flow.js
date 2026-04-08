@@ -10,6 +10,9 @@ async function run() {
 
   const payload = {
     applicantType: "unbanked",
+    alternateReferenceId: process.env.TEST_ALTERNATE_REF || "AAAAA1111A",
+    alternateReferenceIdType: "pan",
+    alternateUserSignals: { hasUpiHint: true, hasUtilityHint: true },
     alternateDataConsent: true,
     loanType: "personal",
     requestedAmount: 60000,

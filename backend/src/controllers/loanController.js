@@ -3,6 +3,8 @@ import LoanApplication from "../models/LoanApplication.js";
 import BorrowerProfile from "../models/BorroweProfile.js";
 import { sendLoanSubmittedEmail } from "../services/emailService.js";
 import { predictCreditScoreWithModel } from "../services/mlService.js";
+import { validateAlternateDataPayload } from "../services/alternateUnderwritingEngine.js";
+import { runUnbankedScoringPipeline } from "../services/alternateScoringPipeline.js";
 
 const DEFAULT_EDUCATION = "Secondary / secondary special";
 
@@ -75,241 +77,6 @@ function normalizeApplicantType(value) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}
-
-function toNonNegativeNumber(value, fallback = 0) {
-  const num = Number(value);
-  if (!Number.isFinite(num) || num < 0) return fallback;
-  return num;
-}
-
-function buildAlternateUnderwriting(alt = {}, requestedAmount, requestedTenure) {
-  const monthsUpi = toNonNegativeNumber(alt?.monthsOfHistory?.upi);
-  const monthsGst = toNonNegativeNumber(alt?.monthsOfHistory?.gst);
-  const monthsUtility = toNonNegativeNumber(alt?.monthsOfHistory?.utility);
-  const monthsRent = toNonNegativeNumber(alt?.monthsOfHistory?.rent);
-
-  const avgInflow = toNonNegativeNumber(alt?.upi?.monthlyInflow);
-  const avgOutflow = toNonNegativeNumber(alt?.upi?.monthlyOutflow);
-  const txCount = toNonNegativeNumber(alt?.upi?.avgMonthlyTransactionCount);
-  const txRegularity = clamp(
-    toNonNegativeNumber(alt?.upi?.transactionRegularity, 0.5),
-    0,
-    1
-  );
-  const inflowVariance = clamp(
-    toNonNegativeNumber(alt?.upi?.inflowVariance, 0.35),
-    0,
-    2
-  );
-
-  const gstConsistency = clamp(
-    toNonNegativeNumber(alt?.gst?.filingConsistency, 0.5),
-    0,
-    1
-  );
-  const utilityRegularity = clamp(
-    toNonNegativeNumber(alt?.utility?.paymentRegularity, 0.5),
-    0,
-    1
-  );
-  const rentRegularity = clamp(
-    toNonNegativeNumber(alt?.rent?.paymentConsistency, 0.5),
-    0,
-    1
-  );
-
-  const declaredIncome = toNonNegativeNumber(
-    alt?.declaredIncome?.monthlyIncome || alt?.declaredIncome?.monthlyTurnover
-  );
-  const employmentType = String(alt?.employmentType || "").toLowerCase();
-  const hasCashflow = avgInflow > 0 || declaredIncome > 0;
-
-  const stabilityFromVariance = clamp(1 - inflowVariance / 1.5, 0, 1);
-  const cashflowStability = clamp(
-    txRegularity * 0.45 + stabilityFromVariance * 0.35 + (txCount >= 25 ? 0.2 : txCount / 125),
-    0,
-    1
-  );
-  const paymentDiscipline = clamp(
-    utilityRegularity * 0.45 + gstConsistency * 0.35 + rentRegularity * 0.2,
-    0,
-    1
-  );
-
-  const effectiveIncome = Math.max(declaredIncome, avgInflow);
-  const affordability = clamp(
-    effectiveIncome > 0 ? requestedAmount / Math.max(1, effectiveIncome * 18) : 1.1,
-    0,
-    2
-  );
-  const capacityScore = clamp(1 - affordability * 0.7, 0, 1);
-  const historyMonths = Math.max(monthsUpi, monthsGst, monthsUtility, monthsRent);
-  const historyScore = clamp(historyMonths / 12, 0, 1);
-
-  const sourceFlags = {
-    hasUpi: monthsUpi > 0,
-    hasGst: monthsGst > 0,
-    hasUtility: monthsUtility > 0,
-    hasRent: monthsRent > 0,
-    hasDeclaredIncome: declaredIncome > 0,
-  };
-  const availableSources = Object.values(sourceFlags).filter(Boolean).length;
-  const completenessScore = clamp(
-    availableSources * 0.14 + historyScore * 0.3 + (hasCashflow ? 0.2 : 0),
-    0,
-    1
-  );
-
-  const riskPenalty =
-    (historyMonths < 3 ? 0.18 : 0) +
-    (cashflowStability < 0.35 ? 0.12 : 0) +
-    (paymentDiscipline < 0.35 ? 0.12 : 0);
-
-  const blendedStrength = clamp(
-    cashflowStability * 0.35 +
-      paymentDiscipline * 0.3 +
-      capacityScore * 0.2 +
-      completenessScore * 0.15 -
-      riskPenalty,
-    0,
-    1
-  );
-
-  const score = Math.round(300 + blendedStrength * 550);
-  const riskBand = score >= 700 ? "low" : score >= 590 ? "medium" : "high";
-  const confidenceLevel =
-    completenessScore >= 0.75 ? "high" : completenessScore >= 0.5 ? "medium" : "low";
-  const reliabilityFlag =
-    completenessScore >= 0.75
-      ? "sufficient_data"
-      : completenessScore >= 0.45
-        ? "partial_data"
-        : "insufficient_data";
-
-  const warnings = [];
-  if (historyMonths < 6) warnings.push("limited_history_window");
-  if (availableSources < 2) warnings.push("few_alternate_sources");
-  if (!hasCashflow) warnings.push("cashflow_signals_missing");
-  if (inflowVariance > 1.1) warnings.push("high_cashflow_variance");
-  const declaredVsObservedGap =
-    declaredIncome > 0 && avgInflow > 0
-      ? Math.abs(declaredIncome - avgInflow) / Math.max(1, declaredIncome)
-      : 0;
-  if (declaredVsObservedGap > 0.45) {
-    warnings.push("declared_income_mismatch");
-  }
-  const circularityProxy =
-    avgInflow > 0 ? clamp(avgOutflow / Math.max(1, avgInflow), 0, 2) : 1.2;
-  if (circularityProxy > 0.95 && txCount > 40) {
-    warnings.push("possible_round_tripping_pattern");
-  }
-
-  const reasons = [
-    `cashflow_stability=${cashflowStability.toFixed(2)}`,
-    `payment_discipline=${paymentDiscipline.toFixed(2)}`,
-    `capacity_score=${capacityScore.toFixed(2)}`,
-    `completeness=${completenessScore.toFixed(2)}`,
-  ];
-
-  const trustScore = clamp(
-    1 -
-      (declaredVsObservedGap * 0.35 +
-        Math.max(0, circularityProxy - 0.85) * 0.35 +
-        (historyMonths < 6 ? 0.15 : 0) +
-        (availableSources < 2 ? 0.15 : 0)),
-    0,
-    1
-  );
-  const fraudRiskScore = clamp(
-    declaredVsObservedGap * 0.45 +
-      Math.max(0, circularityProxy - 0.85) * 0.35 +
-      (inflowVariance > 1.1 ? 0.12 : 0) +
-      (historyMonths < 3 ? 0.18 : 0),
-    0,
-    1
-  );
-
-  // Unbanked decision policy:
-  // - Insufficient/partial data should usually be manual review (not auto-reject).
-  // - Auto-reject only when signals are clearly adverse and reasonably reliable.
-  const hasSevereNegativeSignals =
-    (cashflowStability < 0.2 && paymentDiscipline < 0.2) ||
-    fraudRiskScore >= 0.75 ||
-    (declaredVsObservedGap > 0.7 && txCount > 30);
-  const hasSufficientHistoryForHardDecision =
-    historyMonths >= 6 || availableSources >= 3;
-
-  const decision =
-    score >= 720 && confidenceLevel === "high" && fraudRiskScore < 0.4
-      ? "approve"
-      : hasSevereNegativeSignals && hasSufficientHistoryForHardDecision && score < 540
-        ? "reject"
-        : "review";
-  // Keep unbanked approvals human-confirmed. Only strong negatives are auto-rejected.
-  const status = decision === "reject" ? "auto_rejected" : "under_review";
-
-  return {
-    applicantType: "unbanked",
-    score,
-    riskBand,
-    decision,
-    status,
-    confidenceLevel,
-    reliabilityFlag,
-    sourceFlags,
-    completenessScore,
-    warnings,
-    reasons,
-    normalizedFeaturesSummary: {
-      cashflowStability,
-      paymentDiscipline,
-      capacityScore,
-      completenessScore,
-      historyMonths,
-      avgMonthlyInflow: avgInflow,
-      avgMonthlyOutflow: avgOutflow,
-      avgMonthlyTransactionCount: txCount,
-      requestedAmount: Number(requestedAmount || 0),
-      requestedTenure: Number(requestedTenure || 0),
-      employmentType: employmentType || null,
-      declaredMonthlyIncome: declaredIncome,
-      declaredVsObservedGap,
-      circularityProxy,
-      trustScore,
-      fraudRiskScore,
-    },
-    trustScore,
-    fraudRiskScore,
-  };
-}
-
-function validateAlternateDataPayload(alt = {}) {
-  const errors = [];
-  const quickApply = Boolean(alt?.quickApply);
-  const monthlyInflow = toNonNegativeNumber(alt?.upi?.monthlyInflow, -1);
-  const monthlyOutflow = toNonNegativeNumber(alt?.upi?.monthlyOutflow, -1);
-  const txCount = toNonNegativeNumber(alt?.upi?.avgMonthlyTransactionCount, -1);
-  const declaredMonthlyIncome = toNonNegativeNumber(
-    alt?.declaredIncome?.monthlyIncome || alt?.declaredIncome?.monthlyTurnover,
-    -1
-  );
-  const monthsUpi = toNonNegativeNumber(alt?.monthsOfHistory?.upi, -1);
-  const monthsUtility = toNonNegativeNumber(alt?.monthsOfHistory?.utility, -1);
-
-  if (monthlyInflow < 0 && declaredMonthlyIncome < 0) {
-    errors.push("Provide monthly UPI inflow or declared monthly income");
-  }
-  if (!quickApply && monthlyOutflow < 0) {
-    errors.push("Provide monthly UPI outflow summary");
-  }
-  if (!quickApply && txCount < 0) {
-    errors.push("Provide average monthly transaction count");
-  }
-  if (monthsUpi < 0 && monthsUtility < 0) {
-    errors.push("Provide months of history for at least one alternate source");
-  }
-  return errors;
 }
 
 function summarizeMlError(error) {
@@ -849,6 +616,9 @@ export const applyForLoan = async (req, res) => {
       applicantType: submittedApplicantType,
       alternateData,
       alternateDataConsent,
+      alternateReferenceId,
+      alternateReferenceIdType,
+      alternateUserSignals,
     } = req.body;
 
     const applicantType = normalizeApplicantType(submittedApplicantType);
@@ -867,8 +637,16 @@ export const applyForLoan = async (req, res) => {
       });
     }
     if (applicantType === "unbanked") {
+      const refNorm = String(alternateReferenceId || "").trim();
+      if (refNorm.length < 4) {
+        return res.status(400).json({
+          message:
+            "alternateReferenceId is required for unbanked applications (e.g. PAN or masked bank reference, min 4 characters)",
+        });
+      }
       const alternateValidationErrors = validateAlternateDataPayload(
-        alternateData || {}
+        alternateData || {},
+        { referenceId: refNorm }
       );
       if (alternateValidationErrors.length) {
         return res.status(400).json({
@@ -978,59 +756,35 @@ export const applyForLoan = async (req, res) => {
     let scoringSource = "ml_model";
     let decision;
     let alternateUnderwriting = null;
+    let unbankedSavedMeta = null;
 
     if (applicantType === "unbanked") {
-      alternateUnderwriting = buildAlternateUnderwriting(
-        alternateData || {},
-        normalizedAmount,
-        normalizedTenure
-      );
-      modelFeatures = {
-        ...modelFeatures,
-        userCategory: "unbanked_alt",
-        hasBankAccount: false,
-        hasUpiHistory: Boolean(alternateUnderwriting.sourceFlags.hasUpi),
-        utilityBillConsistency:
-          alternateUnderwriting.normalizedFeaturesSummary.paymentDiscipline,
-        upiTransactionCount:
-          alternateUnderwriting.normalizedFeaturesSummary
-            .avgMonthlyTransactionCount,
-        upiTransactionVolume:
-          alternateUnderwriting.normalizedFeaturesSummary.avgMonthlyInflow,
-        annualIncomeEstimate:
-          (alternateUnderwriting.normalizedFeaturesSummary.declaredMonthlyIncome ||
-            0) * 12,
+      const refKey = String(alternateReferenceId || "").trim().toUpperCase();
+      const idTypeRaw = String(alternateReferenceIdType || "pan").toLowerCase();
+      const idType = ["pan", "bank_account_masked", "other"].includes(idTypeRaw)
+        ? idTypeRaw
+        : "pan";
+      const pipe = await runUnbankedScoringPipeline({
+        alternateData: {
+          ...(alternateData || {}),
+          userSuppliedCsv: Boolean((alternateData || {}).userSuppliedCsv),
+        },
+        adminAttached: null,
+        requestedAmount: normalizedAmount,
+        requestedTenure: normalizedTenure,
+        alternateUserSignals: alternateUserSignals || {},
+        consentAcknowledged: Boolean(alternateDataConsent),
+      });
+      alternateUnderwriting = pipe.alternateUnderwritingDoc;
+      modelFeatures = { ...modelFeatures, ...pipe.modelFeaturesPatch };
+      scoringSource = pipe.scoringSource;
+      decision = pipe.decision;
+      preScreen.flags.push(...pipe.preScreenWarnings);
+      unbankedSavedMeta = {
+        refKey,
+        idType,
+        alternateUserSignals: alternateUserSignals || {},
       };
-      scoringSource = "alternate_underwriting_v1";
-      decision = {
-        creditScore: alternateUnderwriting.score,
-        probabilityOfDefault: clamp(
-          1 - (alternateUnderwriting.score - 300) / 550,
-          0.05,
-          0.95
-        ),
-        riskLevel: alternateUnderwriting.riskBand,
-        eligibleAmount:
-          alternateUnderwriting.decision === "approve"
-            ? normalizedAmount
-            : Math.round(normalizedAmount * 0.7),
-        suggestedInterestRate:
-          alternateUnderwriting.riskBand === "low"
-            ? 11.5
-            : alternateUnderwriting.riskBand === "medium"
-              ? 14.25
-              : 18.75,
-        suggestedTenure: normalizedTenure,
-        decision:
-          alternateUnderwriting.decision === "approve"
-            ? "Approve"
-            : alternateUnderwriting.decision === "reject"
-              ? "Reject"
-              : "Hold",
-        status: alternateUnderwriting.status,
-        decisionReason: `alternate_underwriting:${alternateUnderwriting.reasons.join("|")}`,
-      };
-      preScreen.flags.push(...alternateUnderwriting.warnings);
     } else {
       try {
         mlResult = await predictCreditScoreWithModel(modelFeatures);
@@ -1129,6 +883,17 @@ export const applyForLoan = async (req, res) => {
     if (dateOfBirth) loanData.dateOfBirth = dateOfBirth;
     if (age) loanData.age = Number(age);
 
+    if (applicantType === "unbanked" && unbankedSavedMeta) {
+      loanData.alternateReferenceId = unbankedSavedMeta.refKey;
+      loanData.alternateReferenceIdType = unbankedSavedMeta.idType;
+      loanData.alternateUserSignals = {
+        hasUpiHint: Boolean(unbankedSavedMeta.alternateUserSignals?.hasUpiHint),
+        hasUtilityHint: Boolean(
+          unbankedSavedMeta.alternateUserSignals?.hasUtilityHint
+        ),
+      };
+    }
+
     // Layered AI + policy decision (non-breaking keys preserved for frontend).
     loanData.aiAnalysis = {
       creditScore: decision.creditScore,
@@ -1138,11 +903,25 @@ export const applyForLoan = async (req, res) => {
       suggestedTenure: decision.suggestedTenure,
       amlFlags: preScreen.flags,
       shapFactors: {
-        explanationSummary: [
-          decision.decisionReason,
-          `scoringSource=${scoringSource}`,
-          `borrowerType=${borrowerProfile?.borrowerType || modelFeatures?.userCategory || "unknown"}`,
-        ],
+        explanationSummary: (() => {
+          const base = [
+            decision.decisionReason,
+            `scoringSource=${scoringSource}`,
+            `borrowerType=${borrowerProfile?.borrowerType || modelFeatures?.userCategory || "unknown"}`,
+          ];
+          if (
+            applicantType === "unbanked" &&
+            alternateUnderwriting?.explanationMetadata?.shap?.topFeatures?.length
+          ) {
+            base.push("alternate_model_shap_top:");
+            alternateUnderwriting.explanationMetadata.shap.topFeatures
+              .slice(0, 8)
+              .forEach((t) => {
+                base.push(`  ${t.name} (shap=${t.shapValue})`);
+              });
+          }
+          return base;
+        })(),
       },
       modelVersion: "winner_upgrade_v5",
     };
@@ -1172,24 +951,10 @@ export const applyForLoan = async (req, res) => {
 
     if (alternateUnderwriting) {
       loanData.alternateUnderwriting = {
-        sourceFlags: alternateUnderwriting.sourceFlags,
-        alternateData: alternateData || {},
-        dataCompletenessScore: alternateUnderwriting.completenessScore,
-        alternateRiskScore: alternateUnderwriting.score,
-        confidenceLevel: alternateUnderwriting.confidenceLevel,
-        reliabilityFlag: alternateUnderwriting.reliabilityFlag,
-        scoringMethod: "alternate_feature_blend",
-        scoringVersion: "alt_v1",
-        decision: alternateUnderwriting.decision,
-        riskBand: alternateUnderwriting.riskBand,
-        reasons: alternateUnderwriting.reasons,
-        warnings: alternateUnderwriting.warnings,
-        normalizedFeaturesSummary: alternateUnderwriting.normalizedFeaturesSummary,
+        ...alternateUnderwriting,
         explanationMetadata: {
-          consentAcknowledged: Boolean(alternateDataConsent),
+          ...(alternateUnderwriting.explanationMetadata || {}),
           preScreenStatus: preScreen.preScreenStatus,
-          trustScore: alternateUnderwriting.trustScore,
-          fraudRiskScore: alternateUnderwriting.fraudRiskScore,
         },
       };
     }

@@ -36,6 +36,22 @@ const safeNumber = (value: any, fallback = 0) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
+/** Unbanked headline blended score ↔ PD (matches backend alternateDisplayAlignment) */
+function alternatePdFromBlendedCreditScore(score: number): number {
+  const s = Number(score);
+  if (!Number.isFinite(s)) return 0;
+  const raw = 1 - (s - 300) / 550;
+  return Math.max(0.05, Math.min(0.95, raw));
+}
+
+function alternateRiskLevelFromScore(score: number): string {
+  const s = Number(score);
+  if (!Number.isFinite(s)) return "medium";
+  if (s >= 700) return "low";
+  if (s >= 590) return "medium";
+  return "high";
+}
+
 const formatCurrency = (value: any) =>
   safeNumber(value, 0).toLocaleString("en-IN");
 
@@ -99,6 +115,17 @@ export function MyLoansPage() {
                 (Math.pow(1 + monthlyRate, tenureMonths) - 1)
               : requestedAmount / tenureMonths;
           const totalPayable = Math.round(emi * tenureMonths);
+          const isUnbanked =
+            loan.applicantType === "unbanked" ||
+            loan.features?.underwritingPath === "unbanked";
+          const headScore = loan.aiAnalysis?.creditScore;
+          let riskLevel = loan.aiAnalysis?.riskLevel || "medium";
+          const baseFeat = { ...(loan.features || {}) };
+          if (isUnbanked && headScore != null && Number.isFinite(Number(headScore))) {
+            const s = Number(headScore);
+            riskLevel = alternateRiskLevelFromScore(s);
+            baseFeat.probabilityOfDefault = alternatePdFromBlendedCreditScore(s);
+          }
           return {
             ...loan,
             id: loan._id,
@@ -106,7 +133,7 @@ export function MyLoansPage() {
             amount: requestedAmount,
             status: displayStatus,
             loanType: loan.loanType,
-            riskLevel: loan.aiAnalysis?.riskLevel || 'medium',
+            riskLevel,
             interestRate: rate,
             eligibleAmount: safeNumber(loan.aiAnalysis?.eligibleAmount, requestedAmount),
             creditScore: loan.aiAnalysis?.creditScore,
@@ -124,7 +151,7 @@ export function MyLoansPage() {
             totalPayable,
             remainingAmount: totalPayable,
             paidAmount: 0,
-            features: loan.features || {},
+            features: baseFeat,
           };
         });
 
@@ -251,6 +278,21 @@ export function MyLoansPage() {
     if (freshLoan) {
       const backendStatus = freshLoan.status;
       const displayStatus = freshLoan.displayStatus || formatStatus(backendStatus);
+      const isUnbankedFresh =
+        freshLoan.applicantType === "unbanked" ||
+        freshLoan.features?.underwritingPath === "unbanked";
+      const headScoreFresh = freshLoan.aiAnalysis?.creditScore;
+      let riskLevelFresh = freshLoan.aiAnalysis?.riskLevel || "medium";
+      const baseFeatFresh = { ...(freshLoan.features || {}) };
+      if (
+        isUnbankedFresh &&
+        headScoreFresh != null &&
+        Number.isFinite(Number(headScoreFresh))
+      ) {
+        const s = Number(headScoreFresh);
+        riskLevelFresh = alternateRiskLevelFromScore(s);
+        baseFeatFresh.probabilityOfDefault = alternatePdFromBlendedCreditScore(s);
+      }
       const formattedLoan = {
         ...freshLoan,
         id: freshLoan._id,
@@ -258,7 +300,7 @@ export function MyLoansPage() {
         amount: safeNumber(freshLoan.requestedAmount, 0),
         status: displayStatus,
         loanType: freshLoan.loanType,
-        riskLevel: freshLoan.aiAnalysis?.riskLevel || 'medium',
+        riskLevel: riskLevelFresh,
         interestRate: safeNumber(freshLoan.aiAnalysis?.suggestedInterestRate, 12.5),
         eligibleAmount: safeNumber(
           freshLoan.aiAnalysis?.eligibleAmount,
@@ -303,7 +345,7 @@ export function MyLoansPage() {
                 (safeNumber(freshLoan.aiAnalysis?.suggestedInterestRate, 12.5) / 100 / 12))
           ),
         paidAmount: 0,
-        features: freshLoan.features || {},
+        features: baseFeatFresh,
       };
       // Update with fresh data
       setSelectedLoan(formattedLoan);

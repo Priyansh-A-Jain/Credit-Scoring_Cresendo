@@ -78,6 +78,17 @@ const loanApplicationSchema = new mongoose.Schema({
     default: "banked",
   },
 
+  alternateReferenceId: { type: String, index: true },
+  alternateReferenceIdType: {
+    type: String,
+    enum: ["pan", "bank_account_masked", "other"],
+    default: "pan",
+  },
+  alternateUserSignals: {
+    hasUpiHint: { type: Boolean, default: false },
+    hasUtilityHint: { type: Boolean, default: false },
+  },
+
   alternateUnderwriting: {
     sourceFlags: { type: Object, default: {} },
     alternateData: { type: Object, default: {} },
@@ -105,6 +116,9 @@ const loanApplicationSchema = new mongoose.Schema({
     warnings: { type: [String], default: [] },
     normalizedFeaturesSummary: { type: Object, default: {} },
     explanationMetadata: { type: Object, default: {} },
+    adminAttached: { type: Object, default: {} },
+    heuristicBaselineScore: { type: Number },
+    mlFeatureVector: { type: Object, default: {} },
   },
 
   // Application status

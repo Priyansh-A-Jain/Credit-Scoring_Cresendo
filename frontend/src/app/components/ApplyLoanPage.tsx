@@ -172,6 +172,12 @@ export function ApplyLoanPage() {
   const [alternateIngestionMessage, setAlternateIngestionMessage] = useState<string | null>(null);
   const [alternateIngestionSuccess, setAlternateIngestionSuccess] = useState(false);
   const [showIngestedOverride, setShowIngestedOverride] = useState(false);
+  const [alternateReferenceId, setAlternateReferenceId] = useState("");
+  const [alternateReferenceIdType, setAlternateReferenceIdType] = useState<
+ "pan" | "bank_account_masked" | "other"
+ >("pan");
+  const [hasUpiHint, setHasUpiHint] = useState(false);
+  const [hasUtilityHint, setHasUtilityHint] = useState(false);
 
   const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -246,6 +252,14 @@ export function ApplyLoanPage() {
       if (savedSession.quickApplyUnbanked !== undefined) {
         setQuickApplyUnbanked(Boolean(savedSession.quickApplyUnbanked));
       }
+      if (savedSession.alternateReferenceId) setAlternateReferenceId(savedSession.alternateReferenceId);
+      if (savedSession.alternateReferenceIdType) {
+        setAlternateReferenceIdType(
+          savedSession.alternateReferenceIdType as "pan" | "bank_account_masked" | "other"
+        );
+      }
+      if (savedSession.hasUpiHint !== undefined) setHasUpiHint(Boolean(savedSession.hasUpiHint));
+      if (savedSession.hasUtilityHint !== undefined) setHasUtilityHint(Boolean(savedSession.hasUtilityHint));
 
       console.log("✓ Loan application session restored");
     }
@@ -336,9 +350,13 @@ export function ApplyLoanPage() {
         monthsUtilityHistory,
         monthsRentHistory,
         quickApplyUnbanked,
+        alternateReferenceId,
+        alternateReferenceIdType,
+        hasUpiHint,
+        hasUtilityHint,
       });
     }
-  }, [step, applicantType, loanType, incomeRange, hasExistingLoan, existingEmi, dependents, coApplicant, loanAmount, tenure, occupation, gender, maritalStatus, familyMembersCount, childrenCount, dateOfBirth, age, courseName, university, studyLocation, courseDuration, homeArea, bhk, homeLocation, estimatedPrice, autoType, autoModel, autoPrice, autoDetails, businessType, faceScanImage, coAppFaceScanImage, alternateDataConsent, upiMonthlyInflow, upiMonthlyOutflow, avgMonthlyTransactionCount, transactionRegularity, upiInflowVariance, gstConsistency, utilityPaymentRegularity, rentPaymentConsistency, declaredMonthlyIncome, employmentOrBusinessType, monthsUpiHistory, monthsGstHistory, monthsUtilityHistory, monthsRentHistory, quickApplyUnbanked, disableAutoSave]);
+  }, [step, applicantType, loanType, incomeRange, hasExistingLoan, existingEmi, dependents, coApplicant, loanAmount, tenure, occupation, gender, maritalStatus, familyMembersCount, childrenCount, dateOfBirth, age, courseName, university, studyLocation, courseDuration, homeArea, bhk, homeLocation, estimatedPrice, autoType, autoModel, autoPrice, autoDetails, businessType, faceScanImage, coAppFaceScanImage, alternateDataConsent, upiMonthlyInflow, upiMonthlyOutflow, avgMonthlyTransactionCount, transactionRegularity, upiInflowVariance, gstConsistency, utilityPaymentRegularity, rentPaymentConsistency, declaredMonthlyIncome, employmentOrBusinessType, monthsUpiHistory, monthsGstHistory, monthsUtilityHistory, monthsRentHistory, quickApplyUnbanked, alternateReferenceId, alternateReferenceIdType, hasUpiHint, hasUtilityHint, disableAutoSave]);
 
   // Camera Handlers
   const startCamera = (forWhom: "applicant" | "coApplicant") => {
@@ -553,6 +571,8 @@ export function ApplyLoanPage() {
 
     if (applicantType === "unbanked") {
       if (!alternateDataConsent) errors.push("Alternate data consent is required");
+      const refOk = String(alternateReferenceId || "").trim().length >= 4;
+      if (!refOk) errors.push("Reference ID is required (e.g. PAN or bank reference, min 4 characters)");
       if (!quickApplyUnbanked) {
         if (!upiMonthlyOutflow) errors.push("Monthly UPI outflow is required");
         if (!avgMonthlyTransactionCount)
@@ -562,8 +582,6 @@ export function ApplyLoanPage() {
       }
       if (!declaredMonthlyIncome && !upiMonthlyInflow)
         errors.push("Monthly inflow or declared income is required");
-      if (!monthsUpiHistory && !monthsUtilityHistory)
-        errors.push("Months of history is required (UPI or Utility)");
     }
 
     return errors;
@@ -714,8 +732,15 @@ export function ApplyLoanPage() {
         },
         ...(applicantType === "unbanked" && {
           alternateDataConsent,
+          alternateReferenceId: String(alternateReferenceId || "").trim().toUpperCase(),
+          alternateReferenceIdType,
+          alternateUserSignals: {
+            hasUpiHint,
+            hasUtilityHint,
+          },
           alternateData: {
             quickApply: quickApplyUnbanked,
+            userSuppliedCsv: Boolean(alternateIngestionSuccess),
             upi: {
               monthlyInflow: upiMonthlyInflow ? Number(upiMonthlyInflow) : 0,
               monthlyOutflow: upiMonthlyOutflow ? Number(upiMonthlyOutflow) : (quickApplyUnbanked ? 0 : 0),
@@ -835,6 +860,10 @@ export function ApplyLoanPage() {
         setQuickApplyUnbanked(true);
         setAlternateIngestionSuccess(false);
         setShowIngestedOverride(false);
+        setAlternateReferenceId("");
+        setAlternateReferenceIdType("pan");
+        setHasUpiHint(false);
+        setHasUtilityHint(false);
         console.log('Form state reset');
 
         // Navigate to My Loans to show submitted application
@@ -1201,10 +1230,64 @@ export function ApplyLoanPage() {
                         <div className="space-y-1.5 border border-blue-200 bg-blue-50 p-4">
                           <Label className="text-slate-700 text-xs font-bold">Alternate underwriting inputs (Unbanked)</Label>
                           <p className="text-[11px] text-slate-600">Start with only required basics. Add advanced details only if available.</p>
-                          <label className="flex items-center gap-2 text-xs font-bold pt-1">
+                          <div className="space-y-3 pt-2 border-t border-blue-100">
+                            <div className="space-y-1.5">
+                              <Label className="text-slate-800 text-xs">
+                                Reference ID (PAN / masked bank reference) <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                placeholder="e.g. AAAAA1111A for demo vault"
+                                value={alternateReferenceId}
+                                onChange={(e) => setAlternateReferenceId(e.target.value.toUpperCase())}
+                                className="bg-white border-slate-300 font-mono text-sm uppercase"
+                              />
+                              <p className="text-[10px] text-slate-600">
+                                Used to match verified payment extracts on the bank side. Self-uploaded CSVs below are optional and marked
+                                unverified until an analyst attaches proof.
+                              </p>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-slate-800 text-xs">Reference type</Label>
+                              <select
+                                value={alternateReferenceIdType}
+                                onChange={(e) =>
+                                  setAlternateReferenceIdType(
+                                    e.target.value as "pan" | "bank_account_masked" | "other"
+                                  )
+                                }
+                                className="border border-black px-3 py-2 text-xs font-bold bg-white w-full max-w-xs"
+                              >
+                                <option value="pan">PAN</option>
+                                <option value="bank_account_masked">Masked bank / account ref</option>
+                                <option value="other">Other</option>
+                              </select>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-800">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={hasUpiHint}
+                                  onChange={(e) => setHasUpiHint(e.target.checked)}
+                                />
+                                Regular UPI / digital payments (hint only)
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={hasUtilityHint}
+                                  onChange={(e) => setHasUtilityHint(e.target.checked)}
+                                />
+                                Regular utility payments (hint only)
+                              </label>
+                            </div>
+                          </div>
+                          <label className="flex items-center gap-2 text-xs font-bold pt-3">
                             <input type="checkbox" checked={quickApplyUnbanked} onChange={(e) => setQuickApplyUnbanked(e.target.checked)} />
                             Quick Apply (minimal inputs)
                           </label>
+                          <p className="text-[10px] font-black uppercase tracking-wide text-amber-900 pt-1">
+                            Optional — self-upload CSV (unverified)
+                          </p>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                             <select
                               value={alternateSourceType}

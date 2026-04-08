@@ -62,6 +62,10 @@ interface LoanFormState {
   monthsUtilityHistory: string;
   monthsRentHistory: string;
   quickApplyUnbanked: boolean;
+  alternateReferenceId: string;
+  alternateReferenceIdType: "pan" | "bank_account_masked" | "other";
+  hasUpiHint: boolean;
+  hasUtilityHint: boolean;
 }
 
 const SESSION_KEY = "loan_application_session";
